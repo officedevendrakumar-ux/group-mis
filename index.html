@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Group MIS Portal</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#F5F5F0;color:#1a1a1a;font-size:13px;}
+:root{
+  --bg1:#ffffff;--bg2:#F5F5F0;--bg3:#EFEFEA;
+  --text1:#1a1a1a;--text2:#5a5a5a;--text3:#8a8a8a;
+  --border:#E0DFD8;--border2:#C8C7C0;
+  --blue:#185FA5;--blue-light:#E6F1FB;--blue-mid:#85B7EB;
+  --green:#3B6D11;--green-light:#EAF3DE;
+  --amber:#854F0B;--amber-light:#FAEEDA;
+  --red:#A32D2D;--red-light:#FCEBEB;
+  --purple:#534AB7;--purple-light:#EEEDFE;
+  --radius:8px;--radius-lg:12px;
+}
+a{color:var(--blue);}
+/* === LAYOUT === */
+.app{min-height:100vh;}
+.screen{display:none;}
+.screen.active{display:block;}
+.shell{display:flex;min-height:100vh;}
+/* === SIDEBAR === */
+.sidebar{width:220px;min-width:220px;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:10;}
+.slogo{padding:14px 14px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.lm{width:32px;height:32px;background:var(--blue);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:600;flex-shrink:0;}
+.lm-text .lt{font-size:13px;font-weight:600;color:var(--text1);}
+.lm-text .ls{font-size:11px;color:var(--text3);}
+.nlbl{font-size:10px;color:var(--text3);padding:10px 14px 3px;text-transform:uppercase;letter-spacing:.07em;font-weight:600;}
+.ni{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12.5px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;white-space:nowrap;}
+.ni:hover{background:var(--bg2);color:var(--text1);}
+.ni.active{color:var(--blue);border-left-color:var(--blue);background:var(--blue-light);font-weight:600;}
+.ni .nic{font-size:13px;width:16px;text-align:center;}
+.sftr{margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);}
+.av{width:28px;height:28px;border-radius:50%;background:#B5D4F4;color:#0C447C;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
+.user-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.logout-btn{width:100%;padding:6px;font-size:12px;background:none;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;color:var(--text2);}
+.logout-btn:hover{background:var(--bg2);}
+/* === MAIN === */
+.main{flex:1;margin-left:220px;padding:20px;max-width:calc(100vw - 220px);}
+.pg{display:none;}.pg.active{display:block;}
+.ptitle{font-size:18px;font-weight:600;color:var(--text1);margin-bottom:3px;}
+.psub{font-size:12px;color:var(--text3);margin-bottom:18px;}
+/* === CARDS === */
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:16px;}
+.ch{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.ch h3{font-size:13px;font-weight:600;color:var(--text1);}
+.panel{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:16px;}
+.panel h3{font-size:13px;font-weight:600;color:var(--text1);margin-bottom:12px;}
+/* === METRICS === */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px;}
+.mc{background:var(--bg2);border-radius:var(--radius);padding:12px;}
+.ml{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.mv{font-size:20px;font-weight:600;color:var(--text1);}
+.ms{font-size:11px;color:var(--text3);margin-top:2px;}
+/* === TABLES === */
+.tw{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{padding:7px 10px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);border-bottom:1px solid var(--border);}
+td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text1);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--bg2);}
+/* === BUTTONS === */
+.btn{padding:5px 12px;font-size:12px;border-radius:var(--radius);cursor:pointer;border:1px solid var(--border2);background:var(--bg1);color:var(--text1);font-family:inherit;}
+.btn:hover{background:var(--bg2);}
+.btn-blue{background:var(--blue);color:#fff;border-color:var(--blue);}
+.btn-blue:hover{background:#0C447C;}
+.btn-green{background:var(--green);color:#fff;border-color:var(--green);}
+.btn-green:hover{background:#27500A;}
+.btn-amber{background:var(--amber);color:#fff;border-color:var(--amber);}
+.btn-red{background:var(--red);color:#fff;border-color:var(--red);}
+.btn-purple{background:var(--purple);color:#fff;border-color:var(--purple);}
+.btn-sm{padding:3px 9px;font-size:11px;}
+/* === BADGES === */
+.badge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;}
+.b-active,.b-done,.b-up,.b-saved{background:var(--green-light);color:var(--green);}
+.b-inactive,.b-pend,.b-draft{background:var(--amber-light);color:var(--amber);}
+.b-hq,.b-blue,.b-ext,.b-neu{background:var(--blue-light);color:var(--blue);}
+.b-co,.b-ic,.b-purple{background:var(--purple-light);color:var(--purple);}
+.b-promoter,.b-warn{background:var(--amber-light);color:var(--amber);}
+.b-elim{background:var(--amber-light);color:var(--amber);}
+.b-dr{background:var(--green-light);color:var(--green);}
+.b-rep{background:var(--red-light);color:var(--red);}
+.b-int{background:var(--amber-light);color:var(--amber);}
+.b-pre{background:#E1F5EE;color:#0F6E56;}
+/* === FORMS === */
+.fl label{display:block;font-size:11px;color:var(--text2);margin-bottom:3px;}
+.fl input,.fl select,.fl textarea{width:100%;padding:6px 9px;font-size:12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg1);color:var(--text1);font-family:inherit;}
+.fl input:focus,.fl select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 2px rgba(24,95,165,.1);}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
+/* === NOTICES === */
+.notice{padding:10px 14px;font-size:12px;border-radius:var(--radius);margin-bottom:12px;}
+.n-blue{background:var(--blue-light);border:1px solid var(--blue-mid);color:#0C447C;}
+.n-green{background:var(--green-light);border:1px solid #97C459;color:#27500A;}
+.n-amber{background:var(--amber-light);border:1px solid #EF9F27;color:#633806;}
+.n-purple{background:var(--purple-light);border:1px solid #AFA9EC;color:#3C3489;}
+/* === LOGIN === */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg2);}
+.login-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 32px;width:100%;max-width:400px;}
+.login-logo{text-align:center;margin-bottom:20px;}
+.login-logo .lm{margin:0 auto 10px;}
+.login-logo h1{font-size:18px;font-weight:600;color:var(--text1);}
+.login-logo p{font-size:12px;color:var(--text3);margin-top:3px;}
+.err{font-size:12px;color:var(--red);margin-top:8px;text-align:center;display:none;}
+.period-sel{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+.period-sel label{font-size:12px;color:var(--text2);}
+.period-sel select{padding:5px 8px;font-size:12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg1);color:var(--text1);}
+/* === TOGGLE === */
+.toggle-bar{display:flex;align-items:center;gap:8px;margin-bottom:14px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 14px;flex-wrap:wrap;}
+.toggle-lbl{font-size:12px;color:var(--text2);}
+.tbtn{padding:5px 14px;font-size:12px;border-radius:var(--radius);cursor:pointer;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);font-family:inherit;}
+.tbtn.active{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600;}
+/* === STMT TABLES === */
+.sec-hdr td{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;background:var(--bg2);padding:5px 10px;}
+.sub-row td{color:var(--text2);}
+.subtotal-row td{font-weight:600;color:var(--blue);background:var(--blue-light);padding:7px 10px;}
+.total-row td{font-weight:600;color:#0C447C;background:#B5D4F4;padding:8px 10px;font-size:13px;}
+.elim-row td{color:var(--amber);background:var(--amber-light);}
+/* === COL HEADERS FOR ENTRY === */
+.col-hdr{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 0.5fr;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.col-hdr span{font-size:11px;color:var(--text2);font-weight:600;text-align:right;}
+.col-hdr span:first-child{text-align:left;}
+.row-entry{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 0.5fr;gap:8px;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);}
+.row-entry input{padding:4px 7px;font-size:12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg1);color:var(--text1);text-align:right;font-family:inherit;}
+.row-entry input:focus{outline:none;border-color:var(--blue);}
+.subtotal-row2{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 0.5fr;gap:8px;align-items:center;padding:6px 8px;background:var(--bg2);border-radius:var(--radius);margin:4px 0;}
+.total-row2{display:grid;grid-template-columns:1.8fr 1fr 1fr 1fr 0.5fr;gap:8px;align-items:center;padding:8px;background:var(--blue-light);border-radius:var(--radius);margin:8px 0;}
+/* === KPI CARDS === */
+.kpi-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;}
+.kpi-label{font-size:11px;color:var(--text2);margin-bottom:4px;}
+.kpi-val{font-size:17px;font-weight:600;color:var(--text1);}
+.kpi-delta{font-size:11px;margin-top:3px;}
+.kpi-delta.up{color:var(--green);}.kpi-delta.dn{color:var(--red);}
+/* === CHIPS === */
+.chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;background:var(--bg2);border:1px solid var(--border);color:var(--text2);cursor:pointer;margin:3px;}
+.chip.selected{background:var(--blue-light);color:var(--blue);border-color:var(--blue-mid);}
+.company-chips{display:flex;flex-wrap:wrap;margin-top:6px;}
+.divider{height:1px;background:var(--border);margin:12px 0;}
+.calc-box{background:var(--blue-light);border:1px solid var(--blue-mid);border-radius:var(--radius);padding:10px 14px;margin-top:10px;}
+.calc-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;color:#185FA5;}
+.calc-row span:last-child{font-weight:600;}
+.calc-total{border-top:1px solid var(--blue-mid);margin-top:5px;padding-top:5px;display:flex;justify-content:space-between;font-size:13px;font-weight:600;color:#0C447C;}
+.ic-badge{display:inline-block;padding:1px 5px;border-radius:10px;font-size:10px;background:var(--purple-light);color:var(--purple);}
+.tab-btn{padding:4px 12px;font-size:12px;border-radius:20px;border:1px solid var(--border2);background:var(--bg1);color:var(--text2);cursor:pointer;font-family:inherit;}
+.tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.ledger-filter{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;}
+.elim-row-item{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 0.6fr;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.elim-hdr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 0.6fr;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.elim-hdr span{font-size:11px;font-weight:600;color:var(--text2);}
+.co-drill{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-bottom:16px;}
+.co-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;cursor:pointer;}
+.co-card:hover{border-color:var(--blue-mid);}
+.export-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px;margin-bottom:16px;}
+.export-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);padding:12px;display:flex;flex-direction:column;gap:8px;}
+.progress-bar{height:6px;background:var(--bg2);border-radius:3px;margin-bottom:16px;overflow:hidden;}
+.progress-fill{height:100%;background:var(--blue);border-radius:3px;}
+.complete-banner{background:var(--green-light);border:1px solid #97C459;border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.sheet-table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0;}
+.sheet-table th{padding:5px 8px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);background:var(--bg2);border-bottom:1px solid var(--border);}
+.sheet-table td{padding:5px 8px;border-bottom:1px solid var(--border);color:var(--text1);}
+.sheet-table tr:last-child td{border-bottom:none;}
+.step-card{background:var(--bg1);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;overflow:hidden;}
+.step-head{display:flex;align-items:center;gap:10px;padding:11px 14px;cursor:pointer;}
+.step-head:hover{background:var(--bg2);}
+.step-body{display:none;padding:0 14px 14px;border-top:1px solid var(--border);}
+.step-body.open{display:block;padding-top:12px;}
+.step-num{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;}
+.sn-done{background:var(--green-light);color:var(--green);}
+.sn-active{background:var(--blue);color:#fff;}
+.sn-pend{background:var(--bg2);color:var(--text2);border:1px solid var(--border2);}
+.code-box{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-family:'Courier New',monospace;font-size:12px;color:var(--text1);margin:8px 0;word-break:break-all;}
+.sub-step{display:flex;gap:10px;align-items:flex-start;margin-bottom:8px;}
+.sub-num{width:20px;height:20px;border-radius:50%;background:var(--blue-light);color:var(--blue);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.sub-text{font-size:12px;color:var(--text1);line-height:1.6;flex:1;}
+/* === GRIDS === */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- ============================= LOGIN ============================= -->
+<div class="screen active" id="loginScreen">
+<div class="login-wrap">
+<div class="login-card">
+  <div class="login-logo">
+    <div class="lm" style="width:44px;height:44px;font-size:18px;">G</div>
+    <h1>Group MIS Portal</h1>
+    <p>Centralised Financial Data Management</p>
+  </div>
+  <div class="fl" style="margin-bottom:10px;"><label>User ID</label><input type="text" id="loginUser" placeholder="Enter user ID" /></div>
+  <div class="fl" style="margin-bottom:10px;"><label>Password</label><input type="password" id="loginPass" placeholder="Enter password" /></div>
+  <div class="fl" style="margin-bottom:12px;"><label>Login as</label>
+    <select id="loginRole">
+      <option value="">Select role...</option>
+      <option value="hq">HQ / MIS Team</option>
+      <option value="company">Company User</option>
+      <option value="promoter">Promoter (Read Only)</option>
+    </select>
+  </div>
+  <button class="btn btn-blue" style="width:100%;padding:9px;" onclick="doLogin()">Sign In</button>
+  <div class="err" id="loginErr">Invalid credentials. Please try again.</div>
+  <div style="margin-top:12px;text-align:center;">
+    <span onclick="showForgot()" style="font-size:12px;color:var(--blue);cursor:pointer;text-decoration:underline;">Forgot your password?</span>
+  </div>
+  <!-- FORGOT PASSWORD PANEL -->
+  <div id="forgotPanel" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+    <div style="font-size:13px;font-weight:600;color:var(--text1);margin-bottom:10px;">Reset Password</div>
+    <div class="fl" style="margin-bottom:8px;"><label>Enter your User ID</label><input type="text" id="forgotUid" placeholder="Your login user ID" /></div>
+    <div class="fl" style="margin-bottom:8px;"><label>New Password</label><input type="password" id="forgotNew" placeholder="Enter new password" /></div>
+    <div class="fl" style="margin-bottom:10px;"><label>Confirm New Password</label><input type="password" id="forgotConfirm" placeholder="Re-enter new password" /></div>
+    <button class="btn btn-blue" style="width:100%;padding:7px;" onclick="doForgot()">Set New Password</button>
+    <div id="forgotMsg" style="font-size:12px;margin-top:8px;text-align:center;display:none;"></div>
+    <div style="margin-top:8px;text-align:center;"><span onclick="hideForgot()" style="font-size:11px;color:var(--text3);cursor:pointer;">← Back to login</span></div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- ============================= APP SHELL ============================= -->
+<div class="screen" id="appScreen">
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="slogo">
+    <div class="lm">G</div>
+    <div class="lm-text"><div class="lt">Group MIS</div><div class="ls" id="sbRoleLbl">HQ Team</div></div>
+  </div>
+
+  <!-- HQ NAV -->
+  <div id="hqNav">
+    <div class="nlbl">Administration</div>
+    <div class="ni active" onclick="showPg('dashboard')" id="nav-dashboard"><span class="nic">&#9632;</span> Dashboard</div>
+    <div class="ni" onclick="showPg('companies')" id="nav-companies"><span class="nic">&#9670;</span> Companies</div>
+    <div class="ni" onclick="showPg('users')" id="nav-users"><span class="nic">&#9651;</span> Users & Access</div>
+    <div class="nlbl">Loan Module</div>
+    <div class="ni" onclick="showPg('loanSummary')" id="nav-loanSummary"><span class="nic">&#9632;</span> Loan Summary</div>
+    <div class="ni" onclick="showPg('loanMaster')" id="nav-loanMaster"><span class="nic">&#9670;</span> Loan Master</div>
+    <div class="ni" onclick="showPg('addLoan')" id="nav-addLoan"><span class="nic">+</span> Add Loan</div>
+    <div class="ni" onclick="showPg('txn')" id="nav-txn"><span class="nic">&#9651;</span> Transactions</div>
+    <div class="ni" onclick="showPg('addTxn')" id="nav-addTxn"><span class="nic">+</span> Add Transaction</div>
+    <div class="ni" onclick="showPg('interest')" id="nav-interest"><span class="nic">%</span> Interest Calc</div>
+    <div class="ni" onclick="showPg('ledger')" id="nav-ledger"><span class="nic">&#9632;</span> Loan Ledger</div>
+    <div class="nlbl">Financial Entry</div>
+    <div class="ni" onclick="showPg('bsEntry')" id="nav-bsEntry"><span class="nic">&#9670;</span> Balance Sheet</div>
+    <div class="ni" onclick="showPg('plEntry')" id="nav-plEntry"><span class="nic">&#9670;</span> P&L Account</div>
+    <div class="ni" onclick="showPg('cfEntry')" id="nav-cfEntry"><span class="nic">&#9670;</span> Cash Flow</div>
+    <div class="ni" onclick="showPg('entryStatus')" id="nav-entryStatus"><span class="nic">&#9651;</span> Entry Status</div>
+    <div class="nlbl">Consolidation</div>
+    <div class="ni" onclick="showPg('consDash')" id="nav-consDash"><span class="nic">&#9632;</span> Group Dashboard</div>
+    <div class="ni" onclick="showPg('consBS')" id="nav-consBS"><span class="nic">&#9670;</span> Consol. BS</div>
+    <div class="ni" onclick="showPg('consPL')" id="nav-consPL"><span class="nic">&#9670;</span> Consol. P&L</div>
+    <div class="ni" onclick="showPg('consCF')" id="nav-consCF"><span class="nic">&#9670;</span> Consol. CF</div>
+    <div class="ni" onclick="showPg('eliminations')" id="nav-eliminations"><span class="nic">&#9651;</span> Eliminations</div>
+    <div class="ni" onclick="showPg('drilldown')" id="nav-drilldown"><span class="nic">&#9632;</span> Company Drill-down</div>
+    <div class="nlbl">MIS & Reports</div>
+    <div class="ni" onclick="showPg('mis')" id="nav-mis"><span class="nic">&#9632;</span> MIS Dashboard</div>
+    <div class="ni" onclick="showPg('promoterView')" id="nav-promoterView"><span class="nic">&#9670;</span> Promoter View</div>
+    <div class="ni" onclick="showPg('regulatory')" id="nav-regulatory"><span class="nic">&#9670;</span> Regulatory Reports</div>
+    <div class="ni" onclick="showPg('trends')" id="nav-trends"><span class="nic">&#9651;</span> Trend Analysis</div>
+    <div class="ni" onclick="showPg('deploy')" id="nav-deploy"><span class="nic">&#9632;</span> Deploy Guide</div>
+  </div>
+
+  <!-- COMPANY NAV -->
+  <div id="coNav" style="display:none;">
+    <div class="nlbl">My Companies</div>
+    <div class="ni active" onclick="showPg('coDash')" id="nav-coDash"><span class="nic">&#9632;</span> Dashboard</div>
+    <div class="ni" onclick="showPg('bsEntry')" id="nav-bsEntryco"><span class="nic">&#9670;</span> Balance Sheet</div>
+    <div class="ni" onclick="showPg('plEntry')" id="nav-plEntryco"><span class="nic">&#9670;</span> P&L Entry</div>
+    <div class="ni" onclick="showPg('cfEntry')" id="nav-cfEntryco"><span class="nic">&#9670;</span> Cash Flow</div>
+    <div class="ni" onclick="showPg('addTxn')" id="nav-addTxnco"><span class="nic">+</span> Add Transaction</div>
+    <div class="ni" onclick="showPg('ledger')" id="nav-ledgerco"><span class="nic">&#9632;</span> My Loan Ledger</div>
+  </div>
+
+  <!-- PROMOTER NAV -->
+  <div id="proNav" style="display:none;">
+    <div class="nlbl">Promoter View</div>
+    <div class="ni active" onclick="showPg('promoterView')" id="nav-proView"><span class="nic">&#9632;</span> Dashboard</div>
+    <div class="ni" onclick="showPg('consDash')" id="nav-proCons"><span class="nic">&#9670;</span> Group Summary</div>
+    <div class="ni" onclick="showPg('trends')" id="nav-proTrends"><span class="nic">&#9651;</span> Trends</div>
+  </div>
+
+  <div class="sftr">
+    <div class="user-row">
+      <div class="av" id="sbAvatar">AD</div>
+      <div><div style="font-size:12px;font-weight:600;color:var(--text1);" id="sbName">Admin</div><div style="font-size:11px;color:var(--text3);" id="sbRole">HQ Team</div></div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Sign out</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+<!-- ========== PHASE 1: FOUNDATION ========== -->
+
+<!-- HQ DASHBOARD -->
+<div class="pg active" id="dashboardPg">
+  <div class="ptitle">Group Overview</div>
+  <div class="psub">Welcome to the Group MIS Portal. All 5 phases are active.</div>
+  <div class="metrics">
+    <div class="mc"><div class="ml">Total companies</div><div class="mv">21</div><div class="ms">Active in group</div></div>
+    <div class="mc"><div class="ml">Active users</div><div class="mv" id="dashUserCount">5</div><div class="ms">All roles</div></div>
+    <div class="mc"><div class="ml">Active loans</div><div class="mv" id="dashLoanCount">0</div><div class="ms" id="dashLoanAmt">No loans yet</div></div>
+    <div class="mc"><div class="ml">Group revenue</div><div class="mv" id="dashRevenue">—</div><div class="ms">Enter P&L data to see</div></div>
+    <div class="mc"><div class="ml">Group PAT</div><div class="mv" id="dashPAT">—</div><div class="ms">Enter P&L data to see</div></div>
+    <div class="mc"><div class="ml">D/E ratio</div><div class="mv" id="dashDE">—</div><div class="ms">Enter data to see</div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Build progress — all phases</h3></div>
+    <div class="tw"><table>
+      <thead><tr><th>Phase</th><th>Module</th><th>Features</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Foundation & Login</td><td>21 companies, unlimited users, many-to-many access, 3 roles</td><td><span class="badge b-active">Complete</span></td></tr>
+        <tr><td>2</td><td>Loans & Borrowings</td><td>All loan types, reducing balance interest, quarterly accrual, full ledger</td><td><span class="badge b-active">Complete</span></td></tr>
+        <tr><td>3</td><td>Financial Entry</td><td>Full BS, P&L, cash flow, IC flags, period-wise entry</td><td><span class="badge b-active">Complete</span></td></tr>
+        <tr><td>4</td><td>Consolidation</td><td>Gross & eliminated toggle, IC register, company drill-down</td><td><span class="badge b-active">Complete</span></td></tr>
+        <tr><td>5</td><td>MIS & Exports</td><td>MIS dashboard, promoter view, regulatory reports, trends</td><td><span class="badge b-active">Complete</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- COMPANIES -->
+<div class="pg" id="companiesPg">
+  <div class="ptitle">Company Master</div>
+  <div class="psub">All group companies. Add unlimited companies — no hard limit.</div>
+  <div style="display:flex;gap:8px;margin-bottom:12px;">
+    <button class="btn btn-blue" onclick="alert('Add company form — fill in the Google Sheet Companies tab to add more.')">+ Add company</button>
+    <input type="text" id="coSearch" placeholder="Search companies..." style="flex:1;padding:5px 9px;font-size:12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg1);color:var(--text1);" oninput="filterCos()"/>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Group companies</h3><span style="font-size:11px;color:var(--text2);" id="coCountLbl">21 companies</span></div>
+    <div class="tw"><table>
+      <thead><tr><th style="width:5%">#</th><th style="width:32%">Company name</th><th style="width:18%">Type</th><th style="width:20%">CIN / Reg no.</th><th style="width:12%">Status</th><th style="width:13%">Action</th></tr></thead>
+      <tbody id="coBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- USERS -->
+<div class="pg" id="usersPg">
+  <div class="ptitle">Users & Access Control</div>
+  <div class="psub">Manage logins and company access. One user can access multiple companies.</div>
+  <div style="margin-bottom:12px;"><button class="btn btn-blue" onclick="toggleAddUser()">+ Add user</button></div>
+  <div id="addUserPanel" style="display:none;" class="panel">
+    <h3>Add new user</h3>
+    <div class="fg2">
+      <div class="fl"><label>Full name</label><input type="text" id="newName" placeholder="e.g. Rajesh Sharma"/></div>
+      <div class="fl"><label>User ID</label><input type="text" id="newUID" placeholder="e.g. rajesh.sharma"/></div>
+    </div>
+    <div class="fg2">
+      <div class="fl"><label>Password</label><input type="password" id="newPass" placeholder="Set password"/></div>
+      <div class="fl"><label>Role</label><select id="newRole"><option value="company">Company user</option><option value="hq">HQ / MIS team</option><option value="promoter">Promoter (read only)</option></select></div>
+    </div>
+    <div class="fl" style="margin-bottom:10px;"><label>Company access (tap to select — multiple allowed)</label><div class="company-chips" id="coChips"></div></div>
+    <div style="display:flex;gap:8px;"><button class="btn btn-blue" onclick="saveUser()">Save user</button><button class="btn" onclick="toggleAddUser()">Cancel</button></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>All users</h3></div>
+    <div class="tw"><table>
+      <thead><tr><th style="width:18%">User ID</th><th style="width:20%">Name</th><th style="width:14%">Role</th><th style="width:38%">Company access</th><th style="width:10%">Status</th></tr></thead>
+      <tbody id="userBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- CO DASHBOARD -->
+<div class="pg" id="coDashPg">
+  <div class="ptitle" id="coDashTitle">Company Dashboard</div>
+  <div class="psub" id="coDashSub">Your assigned companies</div>
+  <div class="metrics">
+    <div class="mc"><div class="ml">My companies</div><div class="mv" id="coMetricCount">0</div><div class="ms">Assigned to you</div></div>
+    <div class="mc"><div class="ml">Pending entries</div><div class="mv">0</div><div class="ms">Current quarter</div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Your company access</h3></div>
+    <div class="tw"><table>
+      <thead><tr><th>Company</th><th>Type</th><th>Your access</th></tr></thead>
+      <tbody id="coAccessBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ========== PHASE 2: LOANS ========== -->
+
+<!-- LOAN SUMMARY -->
+<div class="pg" id="loanSummaryPg">
+  <div class="ptitle">Loans & Borrowings — Summary</div>
+  <div class="psub">All loan facilities across all group companies. Q1 FY2025-26.</div>
+  <div class="metrics">
+    <div class="mc"><div class="ml">Total sanctions</div><div class="mv" id="mSanction">&#8377;0L</div><div class="ms">All facilities</div></div>
+    <div class="mc"><div class="ml">Outstanding principal</div><div class="mv" id="mOutstanding">&#8377;0L</div><div class="ms">As of today</div></div>
+    <div class="mc"><div class="ml">Q-interest accrued</div><div class="mv" id="mInterest">&#8377;421L</div><div class="ms">Current quarter</div></div>
+    <div class="mc"><div class="ml">Active facilities</div><div class="mv" id="mCount">5</div><div class="ms">Loans on record</div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Loan-wise summary</h3>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm" onclick="filterLoans('all')">All</button>
+        <button class="btn btn-sm" onclick="filterLoans('ic')">Intercompany</button>
+        <button class="btn btn-sm" onclick="filterLoans('ext')">External</button>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Company</th><th>Lender</th><th>Type</th><th>Rate %</th><th>Sanction (&#8377;L)</th><th>Outstanding</th><th>Q-Interest</th><th>Flag</th></tr></thead>
+      <tbody id="loanSummaryBody"></tbody>
+    </table></div>
+  </div>
+  <button class="btn btn-blue" onclick="showPg('addLoan')">+ Add new loan</button>
+</div>
+
+<!-- LOAN MASTER -->
+<div class="pg" id="loanMasterPg">
+  <div class="ptitle">Loan Master</div>
+  <div class="psub">All registered loan facilities.</div>
+  <div class="card">
+    <div class="ch"><h3>All facilities</h3><span style="font-size:11px;color:var(--text2);" id="masterCount">5 facilities</span></div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Borrower</th><th>Lender</th><th>Type</th><th>Rate%</th><th>Sanction</th><th>Outstanding</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="masterBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ADD LOAN -->
+<div class="pg" id="addLoanPg">
+  <div class="ptitle">Add New Loan Facility</div>
+  <div class="psub">Register any type of loan or borrowing. Intercompany loans are auto-flagged for elimination.</div>
+  <div class="panel">
+    <h3>Loan details</h3>
+    <div class="fg2">
+      <div class="fl"><label>Borrower company</label><select id="lBorrower"><option value="">Select...</option></select></div>
+      <div class="fl"><label>Loan type</label><select id="lType">
+        <option>Term loan — bank</option><option>Working capital — bank</option><option>Inter-company loan</option>
+        <option>Promoter loan</option><option>NBFC loan</option><option>Debentures (NCD)</option>
+        <option>External commercial borrowing</option><option>Overdraft / CC limit</option>
+        <option>Hire purchase / leasing</option><option>Other borrowing</option>
+      </select></div>
+    </div>
+    <div class="fg2">
+      <div class="fl"><label>Lender name</label><input type="text" id="lLender" placeholder="e.g. SBI, HDFC, Alpha Holdings"/></div>
+      <div class="fl"><label>Intercompany loan?</label><select id="lIC" onchange="toggleICLender()"><option value="no">No — external lender</option><option value="yes">Yes — within group</option></select></div>
+    </div>
+    <div id="lICRow" style="display:none;" class="fg2">
+      <div class="fl"><label>Lender group company</label><select id="lICLender"><option value="">Select...</option></select></div>
+      <div></div>
+    </div>
+    <div class="divider"></div>
+    <h3>Facility terms</h3>
+    <div class="fg4">
+      <div class="fl"><label>Sanction amount (&#8377; Lakhs)</label><input type="number" id="lSanction" placeholder="0.00"/></div>
+      <div class="fl"><label>Rate (% p.a.)</label><input type="number" id="lRate" placeholder="12.00" step="0.01"/></div>
+      <div class="fl"><label>Sanction date</label><input type="date" id="lDate"/></div>
+      <div class="fl"><label>Tenure (months)</label><input type="number" id="lTenure" placeholder="60"/></div>
+    </div>
+    <div class="fg3">
+      <div class="fl"><label>Repayment frequency</label><select id="lRepFreq"><option>Monthly</option><option>Quarterly</option><option>Half-yearly</option><option>Bullet</option></select></div>
+      <div class="fl"><label>Interest accrual</label><select id="lIntFreq"><option>Quarterly</option><option>Monthly</option><option>Half-yearly</option><option>Annual</option></select></div>
+      <div class="fl"><label>Loan ref no.</label><input type="text" id="lRef" placeholder="e.g. SBI/TL/2024/001"/></div>
+    </div>
+    <div class="fg2">
+      <div class="fl"><label>Purpose / remarks</label><input type="text" id="lPurpose" placeholder="e.g. Expansion capex"/></div>
+      <div class="fl"><label>Security / collateral</label><input type="text" id="lSecurity" placeholder="e.g. Plant & machinery"/></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-blue" onclick="saveLoan()">Save loan facility</button><button class="btn" onclick="showPg('loanMaster')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- TRANSACTIONS -->
+<div class="pg" id="txnPg">
+  <div class="ptitle">Transaction Ledger</div>
+  <div class="psub">All drawdowns, repayments, interest postings and prepayments.</div>
+  <div class="ledger-filter">
+    <button class="tab-btn active" onclick="filterTxn('all',this)">All</button>
+    <button class="tab-btn" onclick="filterTxn('drawdown',this)">Drawdown</button>
+    <button class="tab-btn" onclick="filterTxn('repayment',this)">Repayment</button>
+    <button class="tab-btn" onclick="filterTxn('interest',this)">Interest</button>
+    <button class="tab-btn" onclick="filterTxn('prepayment',this)">Prepayment</button>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Transactions</h3><button class="btn btn-blue btn-sm" onclick="showPg('addTxn')">+ Add transaction</button></div>
+    <div class="tw"><table>
+      <thead><tr><th>Date</th><th>Company</th><th>Loan ref</th><th>Type</th><th>Amount (&#8377;L)</th><th>Balance after</th><th>Remarks</th></tr></thead>
+      <tbody id="txnBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ADD TRANSACTION -->
+<div class="pg" id="addTxnPg">
+  <div class="ptitle">Add Transaction</div>
+  <div class="psub">Post a drawdown, repayment, interest accrual or prepayment.</div>
+  <div class="panel">
+    <div class="fg2">
+      <div class="fl"><label>Select company</label><select id="txnCo" onchange="loadTxnLoans()"><option value="">Select...</option></select></div>
+      <div class="fl"><label>Select loan facility</label><select id="txnLoan"><option value="">Select...</option></select></div>
+    </div>
+    <div class="fg3">
+      <div class="fl"><label>Transaction type</label><select id="txnType"><option value="drawdown">Drawdown</option><option value="repayment">Repayment</option><option value="interest">Interest accrual</option><option value="prepayment">Prepayment</option></select></div>
+      <div class="fl"><label>Date</label><input type="date" id="txnDate"/></div>
+      <div class="fl"><label>Amount (&#8377; Lakhs)</label><input type="number" id="txnAmt" placeholder="0.00" oninput="updateTxnCalc()"/></div>
+    </div>
+    <div class="fg2">
+      <div class="fl"><label>Bank / payment ref</label><input type="text" id="txnRef" placeholder="UTR / cheque no."/></div>
+      <div class="fl"><label>Remarks</label><input type="text" id="txnRemarks" placeholder="Optional notes"/></div>
+    </div>
+    <div id="txnCalcBox" class="calc-box" style="display:none;">
+      <div class="calc-row"><span>Outstanding before</span><span id="calcBefore">&#8377;0L</span></div>
+      <div class="calc-row"><span>This transaction</span><span id="calcTxn">&#8377;0L</span></div>
+      <div class="calc-total"><span>Balance after</span><span id="calcAfter">&#8377;0L</span></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;"><button class="btn btn-blue" onclick="saveTxn()">Post transaction</button><button class="btn" onclick="showPg('txn')">Cancel</button></div>
+  </div>
+</div>
+
+<!-- INTEREST CALCULATOR -->
+<div class="pg" id="interestPg">
+  <div class="ptitle">Interest Calculator — Reducing Balance</div>
+  <div class="psub">Quarterly interest accrual on outstanding principal for all active loans.</div>
+  <div class="notice n-blue">Interest is on reducing balance method. Select the quarter and run to preview and post entries for all active loans.</div>
+  <div class="panel">
+    <div class="fg3">
+      <div class="fl"><label>Financial year</label><select id="calcFY"><option>FY 2025-26</option><option>FY 2024-25</option></select></div>
+      <div class="fl"><label>Quarter</label><select id="calcQtr"><option value="Q1">Q1 (Apr–Jun)</option><option value="Q2">Q2 (Jul–Sep)</option><option value="Q3">Q3 (Oct–Dec)</option><option value="Q4">Q4 (Jan–Mar)</option></select></div>
+      <div class="fl"><label>Scope</label><select><option>All companies</option><option>Selected company</option></select></div>
+    </div>
+    <button class="btn btn-blue" onclick="runInterestCalc()">Calculate & preview</button>
+  </div>
+  <div id="interestResult" style="display:none;">
+    <div class="card">
+      <div class="ch"><h3>Interest preview</h3><button class="btn btn-green btn-sm" onclick="postInterest()">Post all entries</button></div>
+      <div class="tw"><table>
+        <thead><tr><th>Company</th><th>Loan ref</th><th>Rate %</th><th>Outstanding (&#8377;L)</th><th>Days</th><th>Interest (&#8377;L)</th></tr></thead>
+        <tbody id="interestBody"></tbody>
+      </table></div>
+      <div style="padding:10px 14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;">
+        <span style="font-size:12px;color:var(--text2);">Total interest</span>
+        <span style="font-size:14px;font-weight:600;" id="interestTotal">&#8377;0L</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOAN LEDGER -->
+<div class="pg" id="ledgerPg">
+  <div class="ptitle">Loan-wise Ledger</div>
+  <div class="psub">Full transaction history for any loan facility.</div>
+  <div class="panel" style="margin-bottom:14px;">
+    <div class="fg2">
+      <div class="fl"><label>Select company</label><select id="ledgerCo" onchange="loadLedgerLoans()"><option value="">Select...</option></select></div>
+      <div class="fl"><label>Select loan facility</label><select id="ledgerLoan" onchange="renderLedger()"><option value="">Select...</option></select></div>
+    </div>
+  </div>
+  <div id="ledgerCard" style="display:none;">
+    <div class="metrics" id="ledgerMetrics"></div>
+    <div class="card">
+      <div class="ch"><h3 id="ledgerTitle">Loan ledger</h3></div>
+      <div class="tw"><table>
+        <thead><tr><th>Date</th><th>Type</th><th>Debit (&#8377;L)</th><th>Credit (&#8377;L)</th><th>Balance (&#8377;L)</th><th>Remarks</th></tr></thead>
+        <tbody id="ledgerBody"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PHASE 3: FINANCIAL ENTRY ========== -->
+
+<!-- BALANCE SHEET ENTRY -->
+<div class="pg" id="bsEntryPg">
+  <div class="ptitle">Balance Sheet Entry</div>
+  <div class="psub">Enter all balance sheet heads. IC balances are flagged for elimination. All amounts in &#8377; Lakhs.</div>
+  <div class="notice n-blue">Mark intercompany balances using the IC flag — they will be available for elimination in the Consolidation module.</div>
+  <div class="period-sel">
+    <label>Company:</label><select id="bsCo"><option value="">Select company...</option></select>
+    <label>Period:</label>
+    <select id="bsPeriod"><option>Q1 FY2025-26 (Apr-Jun 25)</option><option>Q2 FY2025-26</option><option>Q3 FY2025-26</option><option>Q4 FY2025-26</option><option>FY 2024-25 (Annual)</option></select>
+  </div>
+  <div class="panel">
+    <h3>Assets</h3>
+    <div class="col-hdr"><span>Line item</span><span>Current period</span><span>Previous period</span><span>IC amount</span><span>IC?</span></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;padding:6px 0 3px;border-bottom:1px solid var(--border);margin-bottom:4px;">Non-current assets</div>
+    <div id="ncaRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Total non-current assets</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stNCA">0.00</span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stNCAp">0.00</span><span></span></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;padding:8px 0 3px;border-bottom:1px solid var(--border);margin-bottom:4px;">Current assets</div>
+    <div id="caRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Total current assets</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stCA">0.00</span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stCAp">0.00</span><span></span></div>
+    <div class="total-row2"><span style="font-weight:600;color:#0C447C;">Total assets</span><span></span><span style="font-weight:600;color:#0C447C;text-align:right;" id="totAssets">0.00</span><span style="font-weight:600;color:#0C447C;text-align:right;" id="totAssetsp">0.00</span><span></span></div>
+  </div>
+  <div class="panel">
+    <h3>Equity & Liabilities</h3>
+    <div class="col-hdr"><span>Line item</span><span>Current period</span><span>Previous period</span><span>IC amount</span><span>IC?</span></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;padding:6px 0 3px;border-bottom:1px solid var(--border);margin-bottom:4px;">Equity</div>
+    <div id="eqRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Total equity</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stEQ">0.00</span><span></span><span></span></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;padding:8px 0 3px;border-bottom:1px solid var(--border);margin-bottom:4px;">Non-current liabilities</div>
+    <div id="nclRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Total non-current liabilities</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stNCL">0.00</span><span></span><span></span></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;padding:8px 0 3px;border-bottom:1px solid var(--border);margin-bottom:4px;">Current liabilities</div>
+    <div id="clRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Total current liabilities</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stCL">0.00</span><span></span><span></span></div>
+    <div class="total-row2"><span style="font-weight:600;color:#0C447C;">Total equity & liabilities</span><span></span><span style="font-weight:600;color:#0C447C;text-align:right;" id="totEL">0.00</span><span></span><span></span></div>
+  </div>
+  <div id="bsCheck" style="display:none;padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;font-size:12px;font-weight:600;"></div>
+  <div style="display:flex;gap:8px;"><button class="btn btn-blue" onclick="saveBS()">Save balance sheet</button><button class="btn" onclick="checkBS()">Check balance</button></div>
+</div>
+
+<!-- P&L ENTRY -->
+<div class="pg" id="plEntryPg">
+  <div class="ptitle">P&L Account Entry</div>
+  <div class="psub">Enter all P&L heads. Mark intercompany revenue and costs for group elimination. All amounts in &#8377; Lakhs.</div>
+  <div class="period-sel">
+    <label>Company:</label><select id="plCo"><option value="">Select company...</option></select>
+    <label>Period:</label><select id="plPeriod"><option>Q1 FY2025-26</option><option>Q2 FY2025-26</option><option>Q3 FY2025-26</option><option>Q4 FY2025-26</option><option>FY 2024-25 (Annual)</option></select>
+  </div>
+  <div class="panel">
+    <h3>Income</h3>
+    <div class="col-hdr"><span>Line item</span><span>Current period</span><span>Previous period</span><span>IC amount</span><span>IC?</span></div>
+    <div id="incRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Total income</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stInc">0.00</span><span></span><span></span></div>
+  </div>
+  <div class="panel">
+    <h3>Expenses</h3>
+    <div class="col-hdr"><span>Line item</span><span>Current period</span><span>Previous period</span><span>IC amount</span><span>IC?</span></div>
+    <div id="expRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Total expenses</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stExp">0.00</span><span></span><span></span></div>
+  </div>
+  <div class="panel"><h3>Profitability summary</h3><div id="profitSummary"></div></div>
+  <div style="display:flex;gap:8px;"><button class="btn btn-blue" onclick="savePL()">Save P&L</button><button class="btn" onclick="calcPL()">Recalculate</button></div>
+</div>
+
+<!-- CASH FLOW ENTRY -->
+<div class="pg" id="cfEntryPg">
+  <div class="ptitle">Cash Flow Statement Entry</div>
+  <div class="psub">Enter operating, investing and financing cash flows. Inflows positive, outflows negative. All amounts in &#8377; Lakhs.</div>
+  <div class="period-sel">
+    <label>Company:</label><select id="cfCo"><option value="">Select company...</option></select>
+    <label>Period:</label><select id="cfPeriod"><option>Q1 FY2025-26</option><option>Q2 FY2025-26</option><option>Q3 FY2025-26</option><option>Q4 FY2025-26</option><option>FY 2024-25 (Annual)</option></select>
+  </div>
+  <div class="panel">
+    <h3>A — Operating activities</h3>
+    <div class="col-hdr"><span>Line item</span><span>Current period</span><span>Previous period</span><span>IC amount</span><span>IC?</span></div>
+    <div id="cfORows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Net cash from operating</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stCFO">0.00</span><span></span><span></span></div>
+  </div>
+  <div class="panel">
+    <h3>B — Investing activities</h3>
+    <div class="col-hdr"><span>Line item</span><span>Current period</span><span>Previous period</span><span>IC amount</span><span>IC?</span></div>
+    <div id="cfIRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Net cash from investing</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stCFI">0.00</span><span></span><span></span></div>
+  </div>
+  <div class="panel">
+    <h3>C — Financing activities</h3>
+    <div class="col-hdr"><span>Line item</span><span>Current period</span><span>Previous period</span><span>IC amount</span><span>IC?</span></div>
+    <div id="cfFRows"></div>
+    <div class="subtotal-row2"><span style="font-weight:600;">Net cash from financing</span><span></span><span style="font-weight:600;color:var(--blue);text-align:right;" id="stCFF">0.00</span><span></span><span></span></div>
+  </div>
+  <div class="panel"><h3>Cash & equivalents movement</h3><div id="cfSummary"></div></div>
+  <div style="display:flex;gap:8px;"><button class="btn btn-blue" onclick="saveCF()">Save cash flow</button><button class="btn" onclick="calcCF()">Recalculate</button></div>
+</div>
+
+<!-- ENTRY STATUS -->
+<div class="pg" id="entryStatusPg">
+  <div class="ptitle">Entry Status Tracker</div>
+  <div class="psub">Track which companies have submitted their financial data for the current period.</div>
+  <div class="metrics">
+    <div class="mc"><div class="ml">Fully complete</div><div class="mv" id="stFull">0</div><div class="ms">All 3 statements</div></div>
+    <div class="mc"><div class="ml">Partial</div><div class="mv" id="stPart">0</div><div class="ms">1–2 statements</div></div>
+    <div class="mc"><div class="ml">Not started</div><div class="mv" id="stNone">30</div><div class="ms">Pending entry</div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Company-wise completion</h3><button class="btn btn-sm btn-blue" onclick="demoFill()">Load demo data</button></div>
+    <div class="tw"><table>
+      <thead><tr><th>Company</th><th>Balance sheet</th><th>P&L</th><th>Cash flow</th><th>Overall</th><th>Action</th></tr></thead>
+      <tbody id="statusBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ========== PHASE 4: CONSOLIDATION ========== -->
+
+<!-- GROUP DASHBOARD -->
+<div class="pg" id="consDashPg">
+  <div class="ptitle">Group Consolidated Dashboard</div>
+  <div class="psub">Real-time aggregation of all 21 companies. Toggle between gross and eliminated views.</div>
+  <div class="toggle-bar">
+    <span class="toggle-lbl">View:</span>
+    <button class="tbtn active" id="dGrossBtn" onclick="setDashView('gross')">Gross (all companies)</button>
+    <button class="tbtn" id="dElimBtn" onclick="setDashView('elim')">Eliminated (interco removed)</button>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+      <label style="font-size:12px;color:var(--text2);">Period:</label>
+      <select style="padding:4px 8px;font-size:12px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg1);color:var(--text1);" onchange="renderConsDash()"><option>Q1 FY2025-26</option><option>Q2 FY2025-26</option><option>Q3 FY2025-26</option><option>Q4 FY2025-26</option></select>
+    </div>
+  </div>
+  <div id="dashViewNotice" class="notice n-blue"></div>
+  <div class="metrics" id="consDashMetrics"></div>
+  <div class="g2">
+    <div class="card"><div class="ch"><h3>Balance sheet snapshot</h3></div><div style="padding:10px 14px;" id="bsSnap"></div></div>
+    <div class="card"><div class="ch"><h3>P&L snapshot</h3></div><div style="padding:10px 14px;" id="plSnap"></div></div>
+  </div>
+  <div class="card"><div class="ch"><h3>Loan & borrowings — group summary</h3></div><div style="padding:10px 14px;" id="loanSnap"></div></div>
+</div>
+
+<!-- CONSOLIDATED BS -->
+<div class="pg" id="consBSPg">
+  <div class="ptitle">Consolidated Balance Sheet</div>
+  <div class="psub">Full group balance sheet. Toggle between gross and eliminated view.</div>
+  <div class="toggle-bar">
+    <span class="toggle-lbl">View:</span>
+    <button class="tbtn active" id="bsGrossBtn" onclick="setBSView('gross')">Gross</button>
+    <button class="tbtn" id="bsElimBtn" onclick="setBSView('elim')">Eliminated</button>
+  </div>
+  <div id="bsElimNotice" class="notice n-amber" style="display:none;"></div>
+  <div class="card">
+    <div class="ch"><h3>Balance sheet — all group companies</h3><button class="btn btn-sm" onclick="alert('Export to Excel — configure Google Sheets API to enable.')">Export</button></div>
+    <div class="tw"><table id="bsConsTable"></table></div>
+  </div>
+</div>
+
+<!-- CONSOLIDATED P&L -->
+<div class="pg" id="consPLPg">
+  <div class="ptitle">Consolidated P&L Account</div>
+  <div class="psub">Full group profit & loss. Toggle between gross and eliminated view.</div>
+  <div class="toggle-bar">
+    <span class="toggle-lbl">View:</span>
+    <button class="tbtn active" id="plGrossBtn" onclick="setPLView('gross')">Gross</button>
+    <button class="tbtn" id="plElimBtn" onclick="setPLView('elim')">Eliminated</button>
+  </div>
+  <div id="plElimNotice" class="notice n-amber" style="display:none;"></div>
+  <div class="card">
+    <div class="ch"><h3>P&L account — all group companies</h3><button class="btn btn-sm" onclick="alert('Export to Excel — configure Google Sheets API to enable.')">Export</button></div>
+    <div class="tw"><table id="plConsTable"></table></div>
+  </div>
+</div>
+
+<!-- CONSOLIDATED CF -->
+<div class="pg" id="consCFPg">
+  <div class="ptitle">Consolidated Cash Flow Statement</div>
+  <div class="psub">Group cash flows — operating, investing and financing.</div>
+  <div class="toggle-bar">
+    <span class="toggle-lbl">View:</span>
+    <button class="tbtn active" id="cfGrossBtn" onclick="setCFView('gross')">Gross</button>
+    <button class="tbtn" id="cfElimBtn" onclick="setCFView('elim')">Eliminated</button>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Cash flow — all group companies</h3><button class="btn btn-sm" onclick="alert('Export to Excel — configure Google Sheets API to enable.')">Export</button></div>
+    <div class="tw"><table id="cfConsTable"></table></div>
+  </div>
+</div>
+
+<!-- ELIMINATIONS -->
+<div class="pg" id="eliminationsPg">
+  <div class="ptitle">Intercompany Elimination Entries</div>
+  <div class="psub">All intercompany transactions identified for elimination. Review and confirm before consolidated view.</div>
+  <div class="notice n-blue">Eliminations remove transactions between group companies so they do not double-count in consolidated statements. IC-flagged entries from Phase 3 are auto-identified.</div>
+  <div class="metrics">
+    <div class="mc"><div class="ml">IC loans outstanding</div><div class="mv" id="elimICLoans">&#8377;0L</div><div class="ms">To be eliminated</div></div>
+    <div class="mc"><div class="ml">IC revenue</div><div class="mv" id="elimICRev">&#8377;0L</div><div class="ms">Cross charges</div></div>
+    <div class="mc"><div class="ml">IC receivables</div><div class="mv" id="elimICRec">&#8377;0L</div><div class="ms">vs payables</div></div>
+    <div class="mc"><div class="ml">Net elim. impact</div><div class="mv" id="elimNet">&#8377;0L</div><div class="ms">From gross total</div></div>
+  </div>
+  <div class="panel">
+    <h3>Loan-level eliminations</h3>
+    <div class="elim-hdr"><span>Transaction</span><span>Lender</span><span>Borrower</span><span>Amount (&#8377;L)</span><span>Status</span></div>
+    <div id="elimLoanRows"><div style="color:var(--text3);font-size:12px;padding:10px 0;">No intercompany loans yet. Add IC-flagged loans to see eliminations here.</div></div>
+  </div>
+  <div class="panel">
+    <h3>Revenue & cost eliminations</h3>
+    <div class="elim-hdr"><span>Line item</span><span>Seller</span><span>Buyer</span><span>Amount (&#8377;L)</span><span>Status</span></div>
+    <div id="elimRevRows"><div style="color:var(--text3);font-size:12px;padding:10px 0;">No IC revenue entries yet. Flag intercompany revenue in P&L entry to see eliminations here.</div></div>
+  </div>
+  <div style="display:flex;gap:8px;"><button class="btn btn-blue" onclick="alert('All elimination entries confirmed. Consolidated view updated.')">Confirm all eliminations</button><button class="btn btn-amber" onclick="alert('Add manual elimination — available in deployment with Google Sheets backend.')">+ Add manual elimination</button></div>
+</div>
+
+<!-- COMPANY DRILL-DOWN -->
+<div class="pg" id="drilldownPg">
+  <div class="ptitle">Company Drill-down</div>
+  <div class="psub">Click any company to view its individual financial summary.</div>
+  <div class="co-drill" id="coGrid"></div>
+  <div id="coDetail" style="display:none;">
+    <div class="card">
+      <div class="ch"><h3 id="coDetailTitle">Company detail</h3><button class="btn btn-sm" onclick="document.getElementById('coDetail').style.display='none'">Close</button></div>
+      <div style="padding:10px 14px;" id="coDetailBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PHASE 5: MIS & REPORTS ========== -->
+
+<!-- MIS DASHBOARD -->
+<div class="pg" id="misPg">
+  <div class="ptitle">MIS Dashboard — Group Financials</div>
+  <div class="psub">Management information summary. Q1 FY2025-26 | ${companies.length} companies | Eliminated view.</div>
+  <div class="period-sel">
+    <label>Period:</label><select><option>Q1 FY2025-26</option><option>Q2 FY2025-26</option><option>Q3 FY2025-26</option><option>Q4 FY2025-26</option></select>
+    <label>View:</label><select><option>Eliminated</option><option>Gross</option></select>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;" id="misKPIs"></div>
+  <div class="g2">
+    <div class="card"><div class="ch"><h3>Revenue by company (top 8)</h3></div><div style="padding:10px 14px;" id="revBars"></div></div>
+    <div class="card"><div class="ch"><h3>Borrowings breakdown</h3></div><div style="padding:10px 14px;" id="borrBars"></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Company-wise MIS snapshot</h3>
+      <div style="display:flex;gap:6px;"><button class="btn btn-sm" onclick="sortMIS('revenue')">Sort by revenue</button><button class="btn btn-sm" onclick="sortMIS('pat')">Sort by PAT</button></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>Company</th><th>Revenue (&#8377;L)</th><th>PAT (&#8377;L)</th><th>PAT %</th><th>Assets (&#8377;L)</th><th>Borrowings</th><th>D/E</th><th>IC flag</th></tr></thead>
+      <tbody id="misTbody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- PROMOTER VIEW -->
+<div class="pg" id="promoterViewPg">
+  <div class="ptitle">Promoter Dashboard</div>
+  <div class="psub">Read-only executive summary for the group promoter. High-level KPIs, no transaction details.</div>
+  <div class="notice n-purple">This is what the promoter sees on login. Read-only — no edit access. Simplified KPI-focused layout.</div>
+  <div class="metrics">
+    <div class="mc"><div class="ml">Group revenue</div><div class="mv">—</div><div class="ms">Pending data entry</div></div>
+    <div class="mc"><div class="ml">Group PAT</div><div class="mv">—</div><div class="ms">Pending data entry</div></div>
+    <div class="mc"><div class="ml">Group net worth</div><div class="mv">&#8377;58,700L</div><div class="ms" style="color:var(--green);">+4.1% growth</div></div>
+    <div class="mc"><div class="ml">Total borrowings</div><div class="mv" id="proBorr">—</div><div class="ms" style="color:var(--amber);">Pending data entry</div></div>
+    <div class="mc"><div class="ml">EBITDA</div><div class="mv">&#8377;17,200L</div><div class="ms">Margin: 33.7%</div></div>
+    <div class="mc"><div class="ml">Interest coverage</div><div class="mv">—</div><div class="ms">Pending data entry</div></div>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="ch"><h3>Top 5 revenue contributors</h3></div><div style="padding:10px 14px;" id="proRevBars"></div></div>
+    <div class="card"><div class="ch"><h3>Key financial ratios</h3></div><div style="padding:10px 14px;" id="ratioTable"></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><h3>Loans & borrowings — promoter view</h3></div>
+    <div class="tw"><table>
+      <thead><tr><th>Company</th><th>Lender</th><th>Type</th><th>Outstanding (&#8377;L)</th><th>Rate %</th><th>Quarterly interest</th></tr></thead>
+      <tbody id="proLoanBody"></tbody>
+    </table></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px;"><button class="btn btn-purple btn-sm" onclick="alert('PDF export — available in deployment.')">Export promoter report (PDF)</button><button class="btn btn-sm" onclick="alert('Email feature — available in deployment.')">Email to promoter</button></div>
+</div>
+
+<!-- REGULATORY REPORTS -->
+<div class="pg" id="regulatoryPg">
+  <div class="ptitle">Regulatory Reports & Exports</div>
+  <div class="psub">Formatted reports for RBI, SEBI, ROC, Income Tax, Banks and other regulatory purposes.</div>
+  <div class="notice n-amber">All regulatory exports use the eliminated consolidated view by default. Switch to gross or company-wise before exporting if required.</div>
+  <div class="export-grid">
+    <div class="export-card"><div><div style="font-size:13px;font-weight:600;color:var(--text1);">RBI / NBFC returns</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Borrowings, lending, ALM schedule</div></div><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-blue" onclick="showExport('RBI NBS-1 Return — Q1 FY2025-26')">Preview</button><button class="btn btn-sm" onclick="alert('Excel export — available in deployment.')">Excel</button></div></div>
+    <div class="export-card"><div><div style="font-size:13px;font-weight:600;color:var(--text1);">ROC / MCA filing</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Balance sheet, P&L, schedules</div></div><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-blue" onclick="showExport('ROC Annual Financial Statements')">Preview</button><button class="btn btn-sm" onclick="alert('Excel export — available in deployment.')">Excel</button></div></div>
+    <div class="export-card"><div><div style="font-size:13px;font-weight:600;color:var(--text1);">Bank / lender MIS</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Monthly/quarterly lender reports</div></div><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-blue" onclick="showExport('Bank MIS Report — Q1 FY2025-26')">Preview</button><button class="btn btn-sm" onclick="alert('Excel export — available in deployment.')">Excel</button></div></div>
+    <div class="export-card"><div><div style="font-size:13px;font-weight:600;color:var(--text1);">Income tax workings</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Deferred tax, MAT, advance tax</div></div><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-blue" onclick="showExport('Income Tax Computation — FY2024-25')">Preview</button><button class="btn btn-sm" onclick="alert('Excel export — available in deployment.')">Excel</button></div></div>
+    <div class="export-card"><div><div style="font-size:13px;font-weight:600;color:var(--text1);">SEBI / listed entity</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Quarterly results, shareholding</div></div><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-blue" onclick="showExport('SEBI Quarterly Financial Results')">Preview</button><button class="btn btn-sm" onclick="alert('Excel export — available in deployment.')">Excel</button></div></div>
+    <div class="export-card"><div><div style="font-size:13px;font-weight:600;color:var(--text1);">Custom report builder</div><div style="font-size:11px;color:var(--text2);margin-top:2px;">Select lines, companies, periods</div></div><div><button class="btn btn-sm btn-green" onclick="showPg('customReport')">Build report</button></div></div>
+  </div>
+  <div id="exportPreview" style="display:none;">
+    <div class="card">
+      <div class="ch"><h3 id="exportTitle">Report preview</h3><div style="display:flex;gap:6px;"><button class="btn btn-sm btn-green" onclick="alert('Download Excel — available in deployment.')">Download Excel</button><button class="btn btn-sm btn-blue" onclick="alert('Download PDF — available in deployment.')">Download PDF</button><button class="btn btn-sm" onclick="document.getElementById('exportPreview').style.display='none'">Close</button></div></div>
+      <div style="padding:14px;" id="exportBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM REPORT -->
+<div class="pg" id="customReportPg">
+  <div class="ptitle">Custom Report Builder</div>
+  <div class="psub">Select companies, line items and period to build a tailored report.</div>
+  <div class="panel">
+    <div class="fg2">
+      <div class="fl"><label>Report name</label><input type="text" placeholder="e.g. Q1 Group Borrowings Summary"/></div>
+      <div class="fl"><label>Report type</label><select><option>Balance sheet extract</option><option>P&L extract</option><option>Loan summary</option><option>Cash flow extract</option><option>Mixed / custom</option></select></div>
+    </div>
+    <div class="fg2">
+      <div class="fl"><label>Companies</label><select><option>All 21 companies (consolidated)</option><option>Selected companies</option><option>Single company</option></select></div>
+      <div class="fl"><label>Period range</label><select><option>Single quarter</option><option>Half year</option><option>Full year</option><option>Multi-year comparison</option></select></div>
+    </div>
+    <div style="display:flex;gap:8px;"><button class="btn btn-blue" onclick="alert('Custom report generated — download available in deployment.')">Generate report</button><button class="btn" onclick="showPg('regulatory')">Back</button></div>
+  </div>
+</div>
+
+<!-- TREND ANALYSIS -->
+<div class="pg" id="trendsPg">
+  <div class="ptitle">Trend Analysis</div>
+  <div class="psub">Quarter-on-quarter and year-on-year trends for key financial metrics.</div>
+  <div class="period-sel">
+    <label>Metric:</label>
+    <select id="trendMetric" onchange="renderTrend()"><option value="revenue">Revenue</option><option value="pat">PAT</option><option value="borrowings">Borrowings</option><option value="assets">Total assets</option></select>
+  </div>
+  <div class="card"><div class="ch"><h3 id="trendTitle">Revenue trend — group total</h3></div><div style="padding:14px;" id="trendChart"></div></div>
+  <div class="card">
+    <div class="ch"><h3>Quarter-on-quarter summary</h3></div>
+    <div class="tw"><table>
+      <thead><tr><th>Metric</th><th>Q1 FY25</th><th>Q2 FY25</th><th>Q3 FY25</th><th>Q4 FY25</th><th>Q1 FY26</th></tr></thead>
+      <tbody id="trendBody"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- DEPLOYMENT GUIDE -->
+<div class="pg" id="deployPg">
+  <div class="ptitle">Deployment Guide</div>
+  <div class="psub">Step-by-step instructions to take this system live for all 21 companies. Total cost: ₹0.</div>
+  <div class="notice n-blue">All steps below are one-time setup. Once deployed, the system runs with no maintenance.</div>
+  <div class="progress-bar"><div class="progress-fill" id="depProgress" style="width:0%"></div></div>
+  <div id="deploySteps"></div>
+</div>
+
+</div><!-- end main -->
+</div><!-- end shell -->
+</div><!-- end appScreen -->
+</div><!-- end app -->
+
+<script>
+// ===================== DATA =====================
+// ===== GOOGLE SHEETS CONFIG =====
+const CONFIG = {
+  SHEET_ID: "1PedX0me5z71TCyueNWOMbyy6-421vZ6whwY0HNxFmm0",
+  API_KEY: "AIzaSyDwO64kM7_mc7n_5j-daThu1beenYldOho"
+};
+
+// Fetch a sheet tab from Google Sheets API
+async function fetchSheet(tabName) {
+  try {
+    const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(tabName)}?key=${CONFIG.API_KEY}`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    const rows = data.values || [];
+    if (rows.length < 2) return [];
+    const headers = rows[0];
+    return rows.slice(1).map(row => {
+      const obj = {};
+      headers.forEach((h, i) => { obj[h] = row[i] || ""; });
+      return obj;
+    });
+  } catch(e) { return null; }
+}
+
+// Load companies & users from Google Sheets, fall back to defaults
+async function loadFromSheets() {
+  const [sheetCos, sheetUsers] = await Promise.all([
+    fetchSheet("Companies"),
+    fetchSheet("Users")
+  ]);
+
+  if (sheetCos && sheetCos.length > 0) {
+    companies.length = 0;
+    sheetCos.forEach((r, i) => {
+      companies.push({
+        id: parseInt(r.id) || (i + 1),
+        name: r.name || "",
+        type: r.type || "",
+        cin: r.cin || "—",
+        status: r.status || "Active"
+      });
+    });
+  }
+
+  if (sheetUsers && sheetUsers.length > 0) {
+    users.length = 0;
+    sheetUsers.forEach(r => {
+      const cosRaw = r.companies || "";
+      const cos = cosRaw.toLowerCase() === "all"
+        ? companies.map(c => c.id)
+        : cosRaw.split(",").map(x => parseInt(x.trim())).filter(Boolean);
+      users.push({
+        id: r.id || "",
+        name: r.name || "",
+        pass: r.password || "",
+        role: r.role || "company",
+        cos,
+        status: "active"
+      });
+    });
+  }
+
+  // Re-render everything now that data is loaded
+  populateSelects();
+  renderCos();
+  renderUsers();
+  renderLoanSummary();
+  renderTxns('all');
+  renderConsDataAll();
+  renderMIS();
+  renderPromoter();
+  renderTrend();
+  renderDeploySteps();
+}
+
+let companies=[
+  {id:1,name:"Emami Limited",type:"HQ",cin:"L63993WB1983PLC036030",status:"Active"},
+  {id:2,name:"Emami Agrotech Limited",type:"Subsidiary",cin:"U15142WB1990PLC048739",status:"Active"},
+  {id:3,name:"Emami Paper Mills Limited",type:"Subsidiary",cin:"L21019WB1981PLC033580",status:"Active"},
+  {id:4,name:"Emami Realty Limited",type:"Subsidiary",cin:"L45400WB2008PLC121426",status:"Active"},
+  {id:5,name:"Emami Frank Ross Limited",type:"Subsidiary",cin:"U52190WB1993PLC058956",status:"Active"},
+  {id:6,name:"Starmark Retail Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
+  {id:7,name:"Emami Art Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
+  {id:8,name:"Brillare Science Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
+  {id:9,name:"Helios Lifestyle Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
+  {id:10,name:"The Man Company Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
+  {id:11,name:"Cannis Lupus Services India Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
+  {id:12,name:"Axiom Ayurveda Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
+  {id:13,name:"Axiom Food & Beverages Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
+  {id:14,name:"Axiom Packwell Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
+  {id:15,name:"Tru Native F&B Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
+  {id:16,name:"Emami Zandu Pharmaceutical Works Ltd",type:"Subsidiary",cin:"—",status:"Active"},
+  {id:17,name:"Emami Infrastructure Ltd",type:"Subsidiary",cin:"—",status:"Active"},
+  {id:18,name:"Emami Capital Markets & Investments Ltd",type:"Subsidiary",cin:"—",status:"Active"},
+  {id:19,name:"Diwakar Finvest Private Limited",type:"Promoter Entity",cin:"U64990WB1996PTC081001",status:"Active"},
+  {id:20,name:"Suraj Finvest Private Limited",type:"Promoter Entity",cin:"U65100WB1996PTC081366",status:"Active"},
+  {id:21,name:"Pan Emami Cosmed Limited",type:"Group Company",cin:"U24246WB1994PLC061553",status:"Active"}
+];
+
+let users=[
+  {id:"admin",name:"Admin User",pass:"Admin@123",role:"hq",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"},
+  {id:"hq.mis",name:"MIS Team User",pass:"MIS@2025",role:"hq",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"},
+  {id:"emami.hq",name:"Group Finance Head",pass:"Emami@123",role:"hq",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"},
+  {id:"co.agrotech",name:"Agrotech Finance Manager",pass:"Agro@456",role:"company",cos:[2],status:"active"},
+  {id:"co.paper",name:"Paper Mills Accounts",pass:"Paper@456",role:"company",cos:[3],status:"active"},
+  {id:"co.realty",name:"Realty Finance Head",pass:"Realty@456",role:"company",cos:[4],status:"active"},
+  {id:"co.frankross",name:"Frank Ross Accounts",pass:"Frank@456",role:"company",cos:[5],status:"active"},
+  {id:"co.starmark",name:"Starmark Finance",pass:"Star@456",role:"company",cos:[6],status:"active"},
+  {id:"co.brillare",name:"Brillare Accounts",pass:"Bril@456",role:"company",cos:[8],status:"active"},
+  {id:"co.helios",name:"Helios Finance",pass:"Heli@456",role:"company",cos:[9],status:"active"},
+  {id:"co.mancompany",name:"The Man Company Finance",pass:"ManCo@456",role:"company",cos:[10],status:"active"},
+  {id:"co.diwakar",name:"Diwakar Finvest Manager",pass:"Diwa@456",role:"company",cos:[19],status:"active"},
+  {id:"co.suraj",name:"Suraj Finvest Manager",pass:"Sura@456",role:"company",cos:[20],status:"active"},
+  {id:"co.panemami",name:"Pan Emami Cosmed Finance",pass:"PanE@456",role:"company",cos:[21],status:"active"},
+  {id:"co.multi1",name:"Regional Controller — East",pass:"Multi@456",role:"company",cos:[2,3,4],status:"active"},
+  {id:"co.multi2",name:"Regional Controller — West",pass:"Multi@789",role:"company",cos:[5,6,7,8],status:"active"},
+  {id:"promo1",name:"Promoter — RS Agarwal Family",pass:"Promo@123",role:"promoter",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"},
+  {id:"promo2",name:"Promoter — RS Goenka Family",pass:"Promo@456",role:"promoter",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"}
+];
+
+let loans=[];
+
+let transactions=[];
+let nextLoanId=1,nextTxnId=1;
+
+const entryStatus={};
+companies.forEach(c=>{entryStatus[c.id]={bs:false,pl:false,cf:false};});
+
+const misData=companies.map(co=>({id:co.id,name:co.name,revenue:0,pat:0,assets:0,borrowings:0,equity:0,ic:false}));
+
+const trendData={revenue:[0,0,0,0,0],pat:[0,0,0,0,0],borrowings:[0,0,0,0,0],assets:[0,0,0,0,0]};
+const trendLabels=["Q1 FY25","Q2 FY25","Q3 FY25","Q4 FY25","Q1 FY26"];
+
+const bsLines={
+  nca:["Property, plant & equipment","Capital work-in-progress","Right-of-use assets","Intangible assets","Goodwill","Investments — non-current","Loans given — non-current","Deferred tax assets","Other non-current assets"],
+  ca:["Inventories","Trade receivables","Cash & cash equivalents","Bank balances (other)","Investments — current","Loans given — current","Intercompany receivables","Advance tax / TDS","Other current assets"],
+  eq:["Share capital","Securities premium","Retained earnings / surplus","Other equity reserves","Non-controlling interest"],
+  ncl:["Long-term borrowings","Deferred tax liabilities","Lease liabilities — non-current","Provisions — non-current","Other non-current liabilities"],
+  cl:["Short-term borrowings","Trade payables","Intercompany payables","Current maturities of LT debt","Advance from customers","Statutory dues payable","Other current liabilities","Provisions — current"]
+};
+const plLines={
+  inc:["Revenue from operations","Other operating income","Interest income","Dividend income","Intercompany revenue","Gain on sale of assets","Miscellaneous income"],
+  exp:["Cost of materials / COGS","Employee benefit expenses","Finance costs — interest","Depreciation & amortisation","Rent & occupancy costs","Intercompany purchases","Selling & distribution","Admin & general expenses","Provision for doubtful debts","Other expenses","Tax expense — current","Tax expense — deferred"]
+};
+const cfLines={
+  oper:["Profit before tax","Add: Depreciation & amortisation","Add: Finance costs","Changes in WC — trade receivables","Changes in WC — inventories","Changes in WC — trade payables","Changes in other current assets","Changes in other current liabilities","Income taxes paid","Other operating adjustments"],
+  inv:["Purchase of fixed assets (capex)","Proceeds from sale of assets","Purchase of investments","Proceeds from sale of investments","Loans given to subsidiaries","Loans repaid by subsidiaries","Interest received","Dividends received"],
+  fin:["Proceeds from long-term borrowings","Repayment of long-term borrowings","Net change in short-term borrowings","Proceeds from issue of share capital","Dividends paid","Finance costs paid","Repayment of lease liabilities"]
+};
+const icDefaults={"Intercompany receivables":true,"Intercompany payables":true,"Intercompany revenue":true,"Intercompany purchases":true,"Loans given — non-current":true,"Loans given — current":true,"Loans given to subsidiaries":true};
+
+const emptySection=(labels)=>labels.map(l=>[l,0,0]);
+const consData={
+  gross:{
+    bs:{
+      nca:emptySection(["Property, plant & equipment","Capital work-in-progress","Intangible assets","Goodwill","Investments — non-current","Loans given — non-current (IC)","Other non-current assets"]),
+      ca:emptySection(["Inventories","Trade receivables","Intercompany receivables","Cash & cash equivalents","Other current assets"]),
+      eq:emptySection(["Share capital","Retained earnings","Other equity"]),
+      ncl:emptySection(["Long-term borrowings","Deferred tax liabilities","Other non-current liabilities"]),
+      cl:emptySection(["Short-term borrowings","Trade payables","Intercompany payables","Other current liabilities"])
+    },
+    pl:{
+      inc:emptySection(["Revenue from operations","Intercompany revenue","Other income"]),
+      exp:emptySection(["Cost of materials / COGS","Employee costs","Finance costs","Depreciation","Intercompany purchases","Other expenses"])
+    },
+    cf:{
+      oper:emptySection(["Profit before tax","Add: Depreciation","Add: Finance costs","Changes in working capital","Taxes paid"]),
+      inv:emptySection(["Purchase of fixed assets","Loans given to subsidiaries","Proceeds from investments","Interest received"]),
+      fin:emptySection(["Proceeds from borrowings","Repayment of borrowings","Finance costs paid","Dividends paid"])
+    }
+  }
+};
+consData.elim={
+  bs:{
+    nca:consData.gross.bs.nca.map(r=>r[0].includes('IC')||r[0].includes('nterco')?[r[0],0,0]:r),
+    ca:consData.gross.bs.ca.map(r=>r[0].includes('nterco')?[r[0],0,0]:r),
+    eq:consData.gross.bs.eq,
+    ncl:consData.gross.bs.ncl,
+    cl:consData.gross.bs.cl.map(r=>r[0].includes('nterco')?[r[0],0,0]:r)
+  },
+  pl:{
+    inc:consData.gross.pl.inc.map(r=>r[0].includes('nterco')?[r[0],0,0]:r),
+    exp:consData.gross.pl.exp.map(r=>r[0].includes('nterco')?[r[0],0,0]:r)
+  },
+  cf:{
+    oper:consData.gross.cf.oper,
+    inv:consData.gross.cf.inv.map(r=>r[0].includes('subsidiaries')?[r[0],0,0]:r),
+    fin:consData.gross.cf.fin
+  }
+};
+
+let currentUser=null;
+let selectedChips=[];
+let dashView='gross',bsView='gross',plView='gross',cfView='gross';
+let deployDone=[];
+
+// ===================== UTILS =====================
+function fmt(n){return Number(n).toLocaleString('en-IN',{maximumFractionDigits:0});}
+function fmtD(n){return Number(n).toFixed(2);}
+function fmtL(n){return '&#8377;'+fmt(n)+'L';}
+function gv(id){const e=document.getElementById(id);return e?parseFloat(e.value)||0:0;}
+function sv(id,v){const e=document.getElementById(id);if(e)e.textContent=fmtD(v);}
+
+// ===================== AUTH =====================
+function showForgot(){
+  document.getElementById('forgotPanel').style.display='block';
+  document.getElementById('forgotUid').value='';
+  document.getElementById('forgotNew').value='';
+  document.getElementById('forgotConfirm').value='';
+  document.getElementById('forgotMsg').style.display='none';
+  document.getElementById('loginErr').style.display='none';
+}
+function hideForgot(){
+  document.getElementById('forgotPanel').style.display='none';
+}
+function doForgot(){
+  const uid=document.getElementById('forgotUid').value.trim();
+  const np=document.getElementById('forgotNew').value;
+  const cp=document.getElementById('forgotConfirm').value;
+  const msg=document.getElementById('forgotMsg');
+  msg.style.display='block';
+  if(!uid||!np||!cp){msg.style.color='var(--red)';msg.textContent='Please fill all fields.';return;}
+  if(np.length<6){msg.style.color='var(--red)';msg.textContent='Password must be at least 6 characters.';return;}
+  if(np!==cp){msg.style.color='var(--red)';msg.textContent='Passwords do not match.';return;}
+  const u=users.find(x=>x.id===uid);
+  if(!u){msg.style.color='var(--red)';msg.textContent='User ID not found. Please contact your admin.';return;}
+  u.pass=np;
+  msg.style.color='var(--green)';
+  msg.textContent='Password updated! You can now log in with your new password.';
+  setTimeout(()=>{
+    hideForgot();
+    document.getElementById('loginUser').value=uid;
+    document.getElementById('loginPass').value='';
+  },2000);
+}
+function doLogin(){
+  const uid=document.getElementById('loginUser').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const role=document.getElementById('loginRole').value;
+  const u=users.find(x=>x.id===uid&&x.pass===pass&&(!role||x.role===role));
+  if(!u){document.getElementById('loginErr').style.display='block';return;}
+  currentUser=u;
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  setupShell(u);
+}
+function doLogout(){
+  currentUser=null;
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+  ['loginUser','loginPass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('loginRole').value='';
+  document.getElementById('loginErr').style.display='none';
+}
+function setupShell(u){
+  const roles={hq:'HQ / MIS Team',company:'Company User',promoter:'Promoter'};
+  document.getElementById('sbAvatar').textContent=u.name.split(' ').map(x=>x[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('sbName').textContent=u.name;
+  document.getElementById('sbRole').textContent=roles[u.role]||u.role;
+  document.getElementById('sbRoleLbl').textContent=roles[u.role]||u.role;
+  document.getElementById('hqNav').style.display=u.role==='hq'?'block':'none';
+  document.getElementById('coNav').style.display=u.role==='company'?'block':'none';
+  document.getElementById('proNav').style.display=u.role==='promoter'?'block':'none';
+  if(u.role==='hq'){
+    populateSelects();renderCos();renderUsers();renderLoanSummary();renderTxns('all');renderConsDataAll();renderMIS();renderPromoter();renderTrend();renderDeploySteps();
+    showPg('dashboard');
+  } else if(u.role==='company'){
+    populateSelects();renderCoDash(u);showPg('coDash');
+  } else {
+    renderPromoter();showPg('promoterView');
+  }
+}
+
+// ===================== NAVIGATION =====================
+function showPg(id){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  const pg=document.getElementById(id+'Pg');
+  if(pg)pg.classList.add('active');
+  const ni=document.getElementById('nav-'+id);
+  if(ni)ni.classList.add('active');
+  if(id==='entryStatus')renderEntryStatus();
+  if(id==='drilldown')renderDrill();
+  if(id==='loanMaster')renderMaster();
+  if(id==='txn')renderTxns('all');
+  if(id==='ledger')initLedger();
+}
+
+// ===================== POPULATE SELECTS =====================
+function populateSelects(){
+  const opts='<option value="">Select company...</option>'+companies.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  ['bsCo','plCo','cfCo','lBorrower','txnCo','ledgerCo'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.innerHTML=opts;
+  });
+  const icOpts='<option value="">Select group company...</option>'+companies.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  const icLender=document.getElementById('lICLender');if(icLender)icLender.innerHTML=icOpts;
+  const today=new Date().toISOString().split('T')[0];
+  ['lDate','txnDate'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=today;});
+}
+
+// ===================== PHASE 1: COMPANIES =====================
+function renderCos(filter=''){
+  const list=companies.filter(c=>c.name.toLowerCase().includes(filter.toLowerCase())||c.type.toLowerCase().includes(filter.toLowerCase()));
+  document.getElementById('coCountLbl').textContent=list.length+' companies';
+  document.getElementById('coBody').innerHTML=list.map(c=>`<tr><td>${c.id}</td><td>${c.name}</td><td>${c.type}</td><td style="font-size:11px;color:var(--text2)">${c.cin}</td><td><span class="badge b-active">Active</span></td><td><button class="btn btn-sm" onclick="alert('Edit company — update the Google Sheet Companies tab in deployment.')">Edit</button></td></tr>`).join('');
+}
+function filterCos(){renderCos(document.getElementById('coSearch').value);}
+
+// ===================== PHASE 1: USERS =====================
+function renderUsers(){
+  document.getElementById('dashUserCount').textContent=users.length;
+  if(document.getElementById('dashLoanCount')) document.getElementById('dashLoanCount').textContent=loans.length;
+  if(document.getElementById('dashLoanAmt')){
+    const totalOut=loans.reduce((s,l)=>s+l.outstanding,0);
+    document.getElementById('dashLoanAmt').textContent=totalOut>0?'₹'+fmt(totalOut)+'L outstanding':'No loans yet';
+  }
+  const roleMap={hq:'HQ Team',company:'Company user',promoter:'Promoter'};
+  const badgeMap={hq:'b-hq',company:'b-co',promoter:'b-promoter'};
+  document.getElementById('userBody').innerHTML=users.map(u=>{
+    const cos=u.role==='hq'||u.role==='promoter'?'All companies':u.cos.map(id=>{const c=companies.find(x=>x.id===id);return c?c.name.split(' ')[0]:id;}).join(', ');
+    return `<tr><td style="font-family:monospace;font-size:11px">${u.id}</td><td>${u.name}</td><td><span class="badge ${badgeMap[u.role]||'b-neu'}">${roleMap[u.role]||u.role}</span></td><td style="font-size:11px;color:var(--text2)">${cos}</td><td><span class="badge b-active">Active</span></td></tr>`;
+  }).join('');
+}
+function toggleAddUser(){
+  const p=document.getElementById('addUserPanel');
+  p.style.display=p.style.display==='none'?'block':'none';
+  selectedChips=[];
+  document.getElementById('coChips').innerHTML=companies.map(c=>`<span class="chip" data-id="${c.id}" onclick="toggleChip(this,${c.id})">${c.name.split(' ')[0]}</span>`).join('');
+}
+function toggleChip(el,id){
+  if(el.classList.contains('selected')){el.classList.remove('selected');selectedChips=selectedChips.filter(x=>x!==id);}
+  else{el.classList.add('selected');selectedChips.push(id);}
+}
+function saveUser(){
+  const name=document.getElementById('newName').value.trim();
+  const uid=document.getElementById('newUID').value.trim();
+  const pass=document.getElementById('newPass').value;
+  const role=document.getElementById('newRole').value;
+  if(!name||!uid||!pass){alert('Please fill all fields.');return;}
+  users.push({id:uid,name,pass,role,cos:selectedChips.slice(),status:'active'});
+  toggleAddUser();renderUsers();
+  alert('User '+name+' added successfully!');
+}
+function renderCoDash(u){
+  document.getElementById('coDashTitle').textContent='Welcome, '+u.name.split(' ')[0];
+  document.getElementById('coDashSub').textContent='You have access to '+u.cos.length+' compan'+(u.cos.length===1?'y':'ies');
+  document.getElementById('coMetricCount').textContent=u.cos.length;
+  document.getElementById('coAccessBody').innerHTML=u.cos.map(cid=>{
+    const c=companies.find(x=>x.id===cid);
+    return c?`<tr><td>${c.name}</td><td>${c.type}</td><td><span class="badge b-active">Data entry + view</span></td></tr>`:'';
+  }).join('');
+}
+
+// ===================== PHASE 2: LOANS =====================
+function renderLoanSummary(filter){
+  let list=loans;
+  if(filter==='ic')list=loans.filter(l=>l.ic);
+  if(filter==='ext')list=loans.filter(l=>!l.ic);
+  const tot=loans.reduce((a,l)=>a+l.sanction,0);
+  const tot2=loans.reduce((a,l)=>a+l.outstanding,0);
+  const tot3=loans.reduce((a,l)=>a+(l.outstanding*l.rate/100/4),0);
+  document.getElementById('mSanction').innerHTML=fmtL(tot);
+  document.getElementById('mOutstanding').innerHTML=fmtL(tot2);
+  document.getElementById('mInterest').innerHTML=fmtL(tot3.toFixed(0));
+  document.getElementById('mCount').textContent=loans.length;
+  document.getElementById('loanSummaryBody').innerHTML=list.map(l=>`<tr>
+    <td style="font-size:11px">${l.borrower.split(' ').slice(0,2).join(' ')}</td>
+    <td style="font-size:11px">${l.lender}</td>
+    <td><span class="badge ${l.ic?'b-ic':'b-ext'}">${l.ic?'Interco':'External'}</span></td>
+    <td>${fmtD(l.rate)}%</td>
+    <td style="text-align:right">${fmtD(l.sanction)}</td>
+    <td style="text-align:right;font-weight:600">${fmtD(l.outstanding)}</td>
+    <td style="text-align:right;color:var(--amber)">${fmtD(l.outstanding*l.rate/100/4)}</td>
+    <td>${l.ic?'<span class="badge b-ic">IC</span>':''}</td>
+  </tr>`).join('');
+}
+function filterLoans(f){renderLoanSummary(f);}
+function renderMaster(){
+  document.getElementById('masterCount').textContent=loans.length+' facilities';
+  document.getElementById('masterBody').innerHTML=loans.map(l=>`<tr>
+    <td>${l.id}</td><td style="font-size:11px">${l.borrower.split(' ').slice(0,2).join(' ')}</td>
+    <td style="font-size:11px">${l.lender}</td><td style="font-size:11px">${l.type}</td>
+    <td>${fmtD(l.rate)}%</td><td style="text-align:right">${fmtD(l.sanction)}</td>
+    <td style="text-align:right;font-weight:600">${fmtD(l.outstanding)}</td>
+    <td><span class="badge b-active">Active</span></td>
+    <td><button class="btn btn-sm" onclick="viewLedgerFor(${l.id})">Ledger</button></td>
+  </tr>`).join('');
+}
+function toggleICLender(){
+  document.getElementById('lICRow').style.display=document.getElementById('lIC').value==='yes'?'grid':'none';
+}
+function saveLoan(){
+  const bId=parseInt(document.getElementById('lBorrower').value);
+  const co=companies.find(c=>c.id===bId);
+  if(!co){alert('Please select borrower company.');return;}
+  const ic=document.getElementById('lIC').value==='yes';
+  const icId=ic?parseInt(document.getElementById('lICLender').value):null;
+  const icCo=ic?companies.find(c=>c.id===icId):null;
+  const sanction=parseFloat(document.getElementById('lSanction').value)||0;
+  loans.push({
+    id:nextLoanId++,borrowerId:bId,borrower:co.name,
+    lender:ic?(icCo?icCo.name:'Group company'):document.getElementById('lLender').value,
+    type:document.getElementById('lType').value,ic,icLenderId:icId,
+    sanction,outstanding:0,rate:parseFloat(document.getElementById('lRate').value)||0,
+    date:document.getElementById('lDate').value,tenure:parseInt(document.getElementById('lTenure').value)||0,
+    ref:document.getElementById('lRef').value,purpose:document.getElementById('lPurpose').value
+  });
+  alert('Loan facility saved!');showPg('loanMaster');
+}
+function loadTxnLoans(){
+  const cId=parseInt(document.getElementById('txnCo').value);
+  const coLoans=loans.filter(l=>l.borrowerId===cId);
+  document.getElementById('txnLoan').innerHTML='<option value="">Select loan...</option>'+coLoans.map(l=>`<option value="${l.id}">[${l.ref}] ${l.type} @ ${l.rate}% — O/S: ₹${l.outstanding}L</option>`).join('');
+}
+function updateTxnCalc(){
+  const lId=parseInt(document.getElementById('txnLoan').value);
+  const loan=loans.find(l=>l.id===lId);
+  const amt=parseFloat(document.getElementById('txnAmt').value)||0;
+  const type=document.getElementById('txnType').value;
+  if(!loan||!amt){document.getElementById('txnCalcBox').style.display='none';return;}
+  const before=loan.outstanding;
+  let after=before;
+  if(type==='drawdown')after=before+amt;
+  else if(type==='repayment'||type==='prepayment')after=before-amt;
+  document.getElementById('calcBefore').innerHTML=fmtL(before);
+  document.getElementById('calcTxn').innerHTML=(type==='drawdown'?'+ ':'-')+fmtL(amt);
+  document.getElementById('calcAfter').innerHTML=fmtL(after);
+  document.getElementById('txnCalcBox').style.display='block';
+}
+function saveTxn(){
+  const lId=parseInt(document.getElementById('txnLoan').value);
+  const loan=loans.find(l=>l.id===lId);
+  const amt=parseFloat(document.getElementById('txnAmt').value)||0;
+  const type=document.getElementById('txnType').value;
+  if(!loan||!amt){alert('Please fill all fields.');return;}
+  const co=companies.find(c=>c.id===loan.borrowerId);
+  let newBal=loan.outstanding;
+  if(type==='drawdown')newBal+=amt;
+  else if(type==='repayment'||type==='prepayment')newBal=Math.max(0,newBal-amt);
+  loan.outstanding=newBal;
+  transactions.push({id:nextTxnId++,loanId:lId,coId:loan.borrowerId,co:co?co.name:'',date:document.getElementById('txnDate').value,type,amt,balance:newBal,ref:document.getElementById('txnRef').value,remarks:document.getElementById('txnRemarks').value});
+  alert('Transaction posted!');showPg('txn');
+}
+function renderTxns(filter){
+  let list=transactions;
+  if(filter!=='all')list=transactions.filter(t=>t.type===filter);
+  const typeMap={drawdown:'b-dr',repayment:'b-rep',interest:'b-int',prepayment:'b-pre'};
+  document.getElementById('txnBody').innerHTML=list.map(t=>`<tr>
+    <td>${t.date}</td>
+    <td style="font-size:11px">${t.co.split(' ').slice(0,2).join(' ')}</td>
+    <td style="font-size:11px;color:var(--text2)">${(loans.find(l=>l.id===t.loanId)||{ref:''}).ref}</td>
+    <td><span class="badge ${typeMap[t.type]||''}">${t.type}</span></td>
+    <td style="text-align:right">${fmtD(t.amt)}</td>
+    <td style="text-align:right;font-weight:600">${fmtD(t.balance)}</td>
+    <td style="font-size:11px;color:var(--text2)">${t.remarks}</td>
+  </tr>`).join('');
+}
+function filterTxn(f,btn){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');renderTxns(f);
+}
+function runInterestCalc(){
+  const qtr=document.getElementById('calcQtr').value;
+  const days={Q1:91,Q2:92,Q3:92,Q4:90};
+  const d=days[qtr]||91;
+  let total=0;
+  document.getElementById('interestBody').innerHTML=loans.filter(l=>l.outstanding>0).map(l=>{
+    const interest=parseFloat((l.outstanding*l.rate/100/365*d).toFixed(2));
+    total+=interest;
+    return `<tr><td style="font-size:11px">${l.borrower.split(' ').slice(0,2).join(' ')}</td><td style="font-size:11px">${l.ref}</td><td>${fmtD(l.rate)}%</td><td style="text-align:right">${fmtD(l.outstanding)}</td><td style="text-align:center">${d}</td><td style="text-align:right;font-weight:600;color:var(--amber)">${fmtD(interest)}</td></tr>`;
+  }).join('');
+  document.getElementById('interestTotal').innerHTML=fmtL(fmtD(total));
+  document.getElementById('interestResult').style.display='block';
+}
+function postInterest(){
+  const qtr=document.getElementById('calcQtr').value;
+  const fy=document.getElementById('calcFY').value;
+  const days={Q1:91,Q2:92,Q3:92,Q4:90};
+  const d=days[qtr]||91;
+  const dateMap={Q1:'2025-06-30',Q2:'2025-09-30',Q3:'2025-12-31',Q4:'2026-03-31'};
+  loans.filter(l=>l.outstanding>0).forEach(l=>{
+    const interest=parseFloat((l.outstanding*l.rate/100/365*d).toFixed(2));
+    const co=companies.find(c=>c.id===l.borrowerId);
+    transactions.push({id:nextTxnId++,loanId:l.id,coId:l.borrowerId,co:co?co.name:'',date:dateMap[qtr],type:'interest',amt:interest,balance:l.outstanding,ref:'INT/'+qtr+'/'+fy.replace('FY ','').replace('-',''),remarks:'Auto: '+qtr+' '+fy+' interest accrual'});
+  });
+  alert('Interest entries posted for '+qtr+' '+fy+'!');
+  document.getElementById('interestResult').style.display='none';showPg('txn');
+}
+function initLedger(){
+  const sel=document.getElementById('ledgerCo');
+  if(sel&&!sel.options.length){
+    sel.innerHTML='<option value="">Select company...</option>'+companies.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  }
+}
+function loadLedgerLoans(){
+  const cId=parseInt(document.getElementById('ledgerCo').value);
+  const coLoans=loans.filter(l=>l.borrowerId===cId);
+  document.getElementById('ledgerLoan').innerHTML='<option value="">Select loan...</option>'+coLoans.map(l=>`<option value="${l.id}">${l.ref} — ${l.type}</option>`).join('');
+  document.getElementById('ledgerCard').style.display='none';
+}
+function renderLedger(){
+  const lId=parseInt(document.getElementById('ledgerLoan').value);
+  if(!lId){document.getElementById('ledgerCard').style.display='none';return;}
+  const loan=loans.find(l=>l.id===lId);if(!loan)return;
+  const txns=transactions.filter(t=>t.loanId===lId).sort((a,b)=>a.date.localeCompare(b.date));
+  document.getElementById('ledgerTitle').textContent=loan.ref+' — '+loan.type;
+  document.getElementById('ledgerMetrics').innerHTML=`
+    <div class="mc"><div class="ml">Sanction</div><div class="mv">${fmtD(loan.sanction)}L</div></div>
+    <div class="mc"><div class="ml">Outstanding</div><div class="mv">${fmtD(loan.outstanding)}L</div></div>
+    <div class="mc"><div class="ml">Rate</div><div class="mv">${fmtD(loan.rate)}%</div><div class="ms">p.a. reducing</div></div>
+    <div class="mc"><div class="ml">Type</div><div class="mv" style="font-size:13px">${loan.ic?'Interco':'External'}</div></div>`;
+  document.getElementById('ledgerBody').innerHTML=txns.map(t=>{
+    const dr=(t.type==='repayment'||t.type==='prepayment'||t.type==='interest')?t.amt:0;
+    const cr=(t.type==='drawdown')?t.amt:0;
+    const typeMap={drawdown:'b-dr',repayment:'b-rep',interest:'b-int',prepayment:'b-pre'};
+    return `<tr><td>${t.date}</td><td><span class="badge ${typeMap[t.type]||''}">${t.type}</span></td><td style="text-align:right;color:var(--red)">${dr?fmtD(dr):''}</td><td style="text-align:right;color:var(--green)">${cr?fmtD(cr):''}</td><td style="text-align:right;font-weight:600">${fmtD(t.balance)}</td><td style="font-size:11px;color:var(--text2)">${t.remarks}</td></tr>`;
+  }).join('');
+  document.getElementById('ledgerCard').style.display='block';
+}
+function viewLedgerFor(lId){
+  showPg('ledger');
+  const loan=loans.find(l=>l.id===lId);if(!loan)return;
+  setTimeout(()=>{
+    document.getElementById('ledgerCo').value=loan.borrowerId;
+    loadLedgerLoans();
+    setTimeout(()=>{document.getElementById('ledgerLoan').value=lId;renderLedger();},50);
+  },50);
+}
+
+// ===================== PHASE 3: FINANCIAL ENTRY =====================
+function makeRows(lines,prefix,container){
+  const el=document.getElementById(container);if(!el)return;
+  el.innerHTML=lines.map((l,i)=>{
+    const isIC=icDefaults[l]||false;
+    const key=prefix+'_'+i;
+    return `<div class="row-entry">
+      <div style="font-size:12px;color:var(--text1);">${l}${isIC?' <span class="ic-badge">IC</span>':''}</div>
+      <input type="number" id="${key}_c" placeholder="0.00" oninput="recalcAll()" step="0.01"/>
+      <input type="number" id="${key}_p" placeholder="0.00" oninput="recalcAll()" step="0.01"/>
+      <input type="number" id="${key}_ic" placeholder="0.00" step="0.01" ${!isIC?'disabled style="opacity:.4"':''}/>
+      <div style="text-align:center">${isIC?'<span class="ic-badge">IC</span>':'<span style="font-size:11px;color:var(--text3);">—</span>'}</div>
+    </div>`;
+  }).join('');
+}
+function sumSec(prefix,count){
+  let c=0,p=0;
+  for(let i=0;i<count;i++){
+    const ce=document.getElementById(prefix+'_'+i+'_c');
+    const pe=document.getElementById(prefix+'_'+i+'_p');
+    if(ce)c+=parseFloat(ce.value)||0;
+    if(pe)p+=parseFloat(pe.value)||0;
+  }
+  return{c,p};
+}
+function recalcAll(){
+  const nca=sumSec('nca',bsLines.nca.length);const ca=sumSec('ca',bsLines.ca.length);
+  const eq=sumSec('eq',bsLines.eq.length);const ncl=sumSec('ncl',bsLines.ncl.length);const cl=sumSec('cl',bsLines.cl.length);
+  sv('stNCA',nca.c);sv('stNCAp',nca.p);sv('stCA',ca.c);sv('stCAp',ca.p);
+  sv('totAssets',nca.c+ca.c);sv('totAssetsp',nca.p+ca.p);
+  sv('stEQ',eq.c);sv('stNCL',ncl.c);sv('stCL',cl.c);
+  sv('totEL',eq.c+ncl.c+cl.c);
+}
+function recalcPL(){
+  const inc=sumSec('inc',plLines.inc.length);const exp=sumSec('exp',plLines.exp.length);
+  sv('stInc',inc.c);sv('stExp',exp.c);
+  const pat=inc.c-exp.c;
+  document.getElementById('profitSummary').innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)"><span>Total income</span><span style="font-weight:600">${fmtD(inc.c)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)"><span>Total expenses</span><span style="font-weight:600">${fmtD(exp.c)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px;font-size:13px;font-weight:600;background:${pat>=0?'var(--green-light)':'var(--red-light)'};border-radius:var(--radius);margin-top:6px;color:${pat>=0?'var(--green)':'var(--red)'}"><span>Net profit / (loss)</span><span>${fmtD(pat)}</span></div>`;
+}
+function recalcCF(){
+  const o=sumSec('cfo',cfLines.oper.length);const i=sumSec('cfi',cfLines.inv.length);const f=sumSec('cff',cfLines.fin.length);
+  sv('stCFO',o.c);sv('stCFI',i.c);sv('stCFF',f.c);
+  const net=o.c+i.c+f.c;
+  document.getElementById('cfSummary').innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)"><span>A. Net operating</span><span style="font-weight:600;color:${o.c>=0?'var(--green)':'var(--red)'}">${fmtD(o.c)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)"><span>B. Net investing</span><span style="font-weight:600;color:${i.c>=0?'var(--green)':'var(--red)'}">${fmtD(i.c)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)"><span>C. Net financing</span><span style="font-weight:600;color:${f.c>=0?'var(--green)':'var(--red)'}">${fmtD(f.c)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:8px;font-size:13px;font-weight:600;background:${net>=0?'var(--green-light)':'var(--red-light)'};border-radius:var(--radius);margin-top:6px;color:${net>=0?'var(--green)':'var(--red)'}"><span>Net change in cash</span><span>${fmtD(net)}</span></div>`;
+}
+function checkBS(){
+  const tA=parseFloat(document.getElementById('totAssets').textContent)||0;
+  const tEL=parseFloat(document.getElementById('totEL').textContent)||0;
+  const diff=Math.abs(tA-tEL);
+  const box=document.getElementById('bsCheck');box.style.display='block';
+  if(diff<0.01){box.style.cssText='padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;font-size:12px;font-weight:600;background:var(--green-light);border:1px solid #97C459;color:var(--green);display:block;';box.textContent='Balance sheet tallies! Assets = Equity & Liabilities = ₹'+fmtD(tA)+'L';}
+  else{box.style.cssText='padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;font-size:12px;font-weight:600;background:var(--red-light);border:1px solid #F09595;color:var(--red);display:block;';box.textContent='Does not tally. Difference: ₹'+fmtD(diff)+'L. Please check entries.';}
+}
+function saveBS(){const co=document.getElementById('bsCo').value;if(!co){alert('Select company first.');return;}entryStatus[co].bs=true;alert('Balance sheet saved!');renderEntryStatus();}
+function savePL(){const co=document.getElementById('plCo').value;if(!co){alert('Select company first.');return;}entryStatus[co].pl=true;alert('P&L saved!');renderEntryStatus();}
+function saveCF(){const co=document.getElementById('cfCo').value;if(!co){alert('Select company first.');return;}entryStatus[co].cf=true;alert('Cash flow saved!');renderEntryStatus();}
+function calcPL(){recalcPL();}function calcCF(){recalcCF();}
+function renderEntryStatus(){
+  let full=0,part=0,none=0;
+  document.getElementById('statusBody').innerHTML=companies.map(c=>{
+    const s=entryStatus[c.id];const cnt=(s.bs?1:0)+(s.pl?1:0)+(s.cf?1:0);
+    if(cnt===3)full++;else if(cnt>0)part++;else none++;
+    const overall=cnt===3?'<span class="badge b-done">Complete</span>':cnt>0?`<span class="badge b-pend">Partial (${cnt}/3)</span>`:'<span style="font-size:11px;color:var(--text3)">—</span>';
+    return `<tr><td style="font-size:12px">${c.name}</td>
+      <td>${s.bs?'<span class="badge b-done">Done</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'}</td>
+      <td>${s.pl?'<span class="badge b-done">Done</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'}</td>
+      <td>${s.cf?'<span class="badge b-done">Done</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'}</td>
+      <td>${overall}</td>
+      <td><button class="btn btn-sm" onclick="quickGoto(${c.id},'bsEntry')">BS</button> <button class="btn btn-sm" onclick="quickGoto(${c.id},'plEntry')">P&L</button></td></tr>`;
+  }).join('');
+  document.getElementById('stFull').textContent=full;document.getElementById('stPart').textContent=part;document.getElementById('stNone').textContent=none;
+}
+function quickGoto(coId,stmt){showPg(stmt);setTimeout(()=>{const sel=document.getElementById(stmt==='bsEntry'?'bsCo':stmt==='plEntry'?'plCo':'cfCo');if(sel)sel.value=coId;},50);}
+function demoFill(){
+  [1,2,3,4,5,6,7,8].forEach(id=>{entryStatus[id].bs=true;entryStatus[id].pl=true;});
+  [1,2,3,4,5].forEach(id=>{entryStatus[id].cf=true;});
+  renderEntryStatus();alert('Demo data loaded for 8 companies.');
+}
+
+// ===================== PHASE 4: CONSOLIDATION =====================
+function renderConsDataAll(){
+  renderConsDash();setBSView('gross');setPLView('gross');setCFView('gross');renderDrill();
+}
+function setDashView(v){
+  dashView=v;
+  document.getElementById('dGrossBtn').classList.toggle('active',v==='gross');
+  document.getElementById('dElimBtn').classList.toggle('active',v==='elim');
+  renderConsDash();
+}
+function renderConsDash(){
+  const v=dashView;
+  const n=document.getElementById('dashViewNotice');
+  if(v==='gross'){n.className='notice n-blue';n.textContent='Gross view: Raw aggregation of all 21 companies including intercompany transactions. Total eliminations available: ₹8,900L.';}
+  else{n.className='notice n-amber';n.textContent='Eliminated view: Intercompany loans (₹4,500L), IC revenue (₹1,200L) and IC receivables/payables (₹3,200L) have been removed.';}
+  const icAdj=v==='elim'?-8900:0;
+  const totalAssets=167000+icAdj;const totalRev=57200+(v==='elim'?-1200:0);const totalBorr=60500+(v==='elim'?-4500:0);
+  document.getElementById('consDashMetrics').innerHTML=`
+    <div class="mc"><div class="ml">Total assets</div><div class="mv" style="font-size:15px">${fmtL(totalAssets)}</div><div class="ms">${v==='elim'?'After IC elim':'Gross'}</div></div>
+    <div class="mc"><div class="ml">Group revenue</div><div class="mv" style="font-size:15px">${fmtL(totalRev)}</div><div class="ms">${v==='elim'?'IC removed':'Gross'}</div></div>
+    <div class="mc"><div class="ml">Group PAT</div><div class="mv" style="font-size:15px">${fmtL(4940)}</div><div class="ms">Net profit</div></div>
+    <div class="mc"><div class="ml">Total borrowings</div><div class="mv" style="font-size:15px">${fmtL(totalBorr)}</div></div>
+    <div class="mc"><div class="ml">D/E ratio</div><div class="mv" style="font-size:15px">${(totalBorr/58700).toFixed(2)}x</div></div>`;
+  document.getElementById('bsSnap').innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Total assets</span><span style="font-weight:600">${fmtL(totalAssets)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Total equity</span><span style="font-weight:600">${fmtL(58700)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px"><span style="color:var(--text2)">IC eliminations</span><span style="font-weight:600;color:${v==='elim'?'var(--amber)':'var(--text3)'}">${v==='elim'?fmtL(8900):'Not applied'}</span></div>`;
+  document.getElementById('plSnap').innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Total revenue</span><span style="font-weight:600">${fmtL(totalRev)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">EBITDA</span><span style="font-weight:600">${fmtL(17200)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px"><span style="color:var(--text2)">PAT</span><span style="font-weight:600;color:var(--green)">${fmtL(4940)}</span></div>`;
+  document.getElementById('loanSnap').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">
+      <div><div style="font-size:11px;color:var(--text2);margin-bottom:3px">Total outstanding</div><div style="font-size:14px;font-weight:600">${fmtL(v==='elim'?56000:60500)}</div></div>
+      <div><div style="font-size:11px;color:var(--text2);margin-bottom:3px">IC loans</div><div style="font-size:14px;font-weight:600;color:${v==='elim'?'var(--amber)':'var(--text1)'}">${v==='elim'?'Eliminated':fmtL(4500)}</div></div>
+      <div><div style="font-size:11px;color:var(--text2);margin-bottom:3px">Q1 interest</div><div style="font-size:14px;font-weight:600">${fmtL(1421)}</div></div>
+    </div>`;
+}
+function buildConsTable(sections,v){
+  let html='<thead><tr><th style="width:40%;text-align:left">Line item</th><th style="width:20%">Current period</th><th style="width:20%">Previous period</th><th style="width:20%">Elimination</th></tr></thead><tbody>';
+  sections.forEach(sec=>{
+    html+=`<tr class="sec-hdr"><td colspan="4">${sec.label}</td></tr>`;
+    let sc=0;
+    sec.rows.forEach(r=>{
+      const isIC=r[0].includes('IC')||r[0].includes('nterco');
+      const dispC=r[1];const elimAmt=isIC&&v==='elim'?r[1]:0;
+      sc+=dispC-elimAmt;
+      html+=`<tr class="${isIC&&v==='elim'?'elim-row':'sub-row'}"><td style="padding-left:18px">${r[0]}${isIC?' <span class="ic-badge">IC</span>':''}</td><td style="text-align:right">${fmt(r[1])}</td><td style="text-align:right">${fmt(r[2]||0)}</td><td style="text-align:right;color:${isIC&&v==='elim'?'var(--amber)':'var(--text3)'}">${isIC&&v==='elim'?'('+fmt(r[1])+')':'-'}</td></tr>`;
+    });
+    html+=`<tr class="subtotal-row"><td>${sec.subtotal}</td><td style="text-align:right">${fmt(sc)}</td><td></td><td></td></tr>`;
+  });
+  html+='</tbody>';return html;
+}
+function setBSView(v){
+  bsView=v;
+  document.getElementById('bsGrossBtn').classList.toggle('active',v==='gross');
+  document.getElementById('bsElimBtn').classList.toggle('active',v==='elim');
+  const n=document.getElementById('bsElimNotice');
+  if(v==='elim'){n.style.display='block';n.textContent='Eliminated view: IC loans (₹4,500L) and intercompany receivables/payables (₹3,200L each) have been removed.';}
+  else n.style.display='none';
+  const d=consData[v].bs;
+  const sections=[
+    {label:'Non-current assets',subtotal:'Total non-current assets',rows:d.nca},
+    {label:'Current assets',subtotal:'Total current assets',rows:d.ca},
+    {label:'Equity',subtotal:'Total equity',rows:d.eq},
+    {label:'Non-current liabilities',subtotal:'Total non-current liabilities',rows:d.ncl},
+    {label:'Current liabilities',subtotal:'Total current liabilities',rows:d.cl}
+  ];
+  document.getElementById('bsConsTable').innerHTML=buildConsTable(sections,v);
+}
+function setPLView(v){
+  plView=v;
+  document.getElementById('plGrossBtn').classList.toggle('active',v==='gross');
+  document.getElementById('plElimBtn').classList.toggle('active',v==='elim');
+  const n=document.getElementById('plElimNotice');
+  if(v==='elim'){n.style.display='block';n.textContent='Eliminated: IC revenue (₹1,200L) and IC purchases (₹1,200L) have been netted off.';}
+  else n.style.display='none';
+  const d=consData[v].pl;
+  const incTotal=d.inc.reduce((a,r)=>a+r[1],0);const expTotal=d.exp.reduce((a,r)=>a+r[1],0);
+  let html='<thead><tr><th style="width:40%;text-align:left">Line item</th><th style="width:20%">Current</th><th style="width:20%">Previous</th><th style="width:20%">Elimination</th></tr></thead><tbody>';
+  html+=`<tr class="sec-hdr"><td colspan="4">Income</td></tr>`;
+  d.inc.forEach(r=>{const isIC=r[0].includes('nterco');html+=`<tr class="${isIC&&v==='elim'?'elim-row':'sub-row'}"><td style="padding-left:18px">${r[0]}${isIC?' <span class="ic-badge">IC</span>':''}</td><td style="text-align:right">${fmt(r[1])}</td><td style="text-align:right">${fmt(r[2]||0)}</td><td style="text-align:right;color:${isIC&&v==='elim'?'var(--amber)':'var(--text3)'}">${isIC&&v==='elim'?'('+fmt(r[1])+')':'-'}</td></tr>`;});
+  html+=`<tr class="subtotal-row"><td>Total income</td><td style="text-align:right">${fmt(incTotal)}</td><td></td><td></td></tr>`;
+  html+=`<tr class="sec-hdr"><td colspan="4">Expenses</td></tr>`;
+  d.exp.forEach(r=>{const isIC=r[0].includes('nterco');html+=`<tr class="${isIC&&v==='elim'?'elim-row':'sub-row'}"><td style="padding-left:18px">${r[0]}${isIC?' <span class="ic-badge">IC</span>':''}</td><td style="text-align:right">${fmt(r[1])}</td><td style="text-align:right">${fmt(r[2]||0)}</td><td style="text-align:right;color:${isIC&&v==='elim'?'var(--amber)':'var(--text3)'}">${isIC&&v==='elim'?'('+fmt(r[1])+')':'-'}</td></tr>`;});
+  html+=`<tr class="subtotal-row"><td>Total expenses</td><td style="text-align:right">${fmt(expTotal)}</td><td></td><td></td></tr>`;
+  const pat=incTotal-expTotal;
+  html+=`<tr class="total-row"><td>Net profit / (loss)</td><td style="text-align:right;color:${pat>=0?'#27500A':'var(--red)'}">${fmt(pat)}</td><td></td><td></td></tr></tbody>`;
+  document.getElementById('plConsTable').innerHTML=html;
+}
+function setCFView(v){
+  cfView=v;
+  document.getElementById('cfGrossBtn').classList.toggle('active',v==='gross');
+  document.getElementById('cfElimBtn').classList.toggle('active',v==='elim');
+  const d=consData[v].cf;
+  let html='<thead><tr><th style="width:50%;text-align:left">Line item</th><th style="width:25%">Current</th><th style="width:25%">Previous</th></tr></thead><tbody>';
+  [['A — Operating activities',d.oper],['B — Investing activities',d.inv],['C — Financing activities',d.fin]].forEach(([lbl,rows])=>{
+    const tot=rows.reduce((a,r)=>a+r[1],0);
+    html+=`<tr class="sec-hdr"><td colspan="3">${lbl}</td></tr>`;
+    rows.forEach(r=>{const isIC=r[0].includes('subsidiaries');html+=`<tr class="${isIC&&v==='elim'?'elim-row':'sub-row'}"><td style="padding-left:18px">${r[0]}${isIC?' <span class="ic-badge">IC</span>':''}</td><td style="text-align:right;color:${r[1]>=0?'var(--text1)':'var(--red)'}">${fmt(r[1])}</td><td style="text-align:right;color:${(r[2]||0)>=0?'var(--text2)':'var(--red)'}">${fmt(r[2]||0)}</td></tr>`;});
+    html+=`<tr class="subtotal-row"><td>Net cash from ${lbl.split('—')[1]?.trim().toLowerCase()}</td><td style="text-align:right;color:${tot>=0?'var(--green)':'var(--red)'}">${fmt(tot)}</td><td></td></tr>`;
+  });
+  html+='</tbody>';document.getElementById('cfConsTable').innerHTML=html;
+}
+function renderDrill(){
+  document.getElementById('coGrid').innerHTML=misData.map(c=>`
+    <div class="co-card" onclick="showCoDetail(${c.id})">
+      <div style="font-size:12px;font-weight:600;color:var(--text1);margin-bottom:5px;">${c.name}</div>
+      <div style="font-size:15px;font-weight:600;">${fmtL(c.revenue)}</div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px;">Revenue</div>
+      <div style="display:flex;gap:6px;margin-top:8px;font-size:11px;">
+        <span style="color:var(--green)">PAT: ${fmtL(c.pat)}</span>
+        <span style="color:var(--text3)">|</span>
+        <span style="color:${c.ic?'var(--amber)':'var(--text2)'}">Borr: ${fmtL(c.borrowings)}</span>
+      </div>
+    </div>`).join('');
+}
+function showCoDetail(id){
+  const c=misData.find(x=>x.id===id);if(!c)return;
+  document.getElementById('coDetailTitle').textContent=c.name+' — financial summary';
+  document.getElementById('coDetailBody').innerHTML=`
+    <div class="metrics"><div class="mc"><div class="ml">Revenue</div><div class="mv">${fmtL(c.revenue)}</div></div><div class="mc"><div class="ml">PAT</div><div class="mv" style="color:var(--green)">${fmtL(c.pat)}</div></div><div class="mc"><div class="ml">Assets</div><div class="mv">${fmtL(c.assets)}</div></div><div class="mc"><div class="ml">Borrowings</div><div class="mv">${fmtL(c.borrowings)}</div></div></div>
+    ${c.ic?`<div class="notice n-amber">This company has IC transactions which will be eliminated in the consolidated view.</div>`:''}`;
+  document.getElementById('coDetail').style.display='block';
+}
+
+// ===================== PHASE 5: MIS =====================
+function renderMIS(){
+  const maxR=Math.max(...misData.map(d=>d.revenue));
+  const maxB=Math.max(...misData.map(d=>d.borrowings));
+  document.getElementById('misKPIs').innerHTML=`
+    <div class="kpi-card"><div class="kpi-label">Group revenue</div><div class="kpi-val">${fmtL(51000)}</div><div class="kpi-delta up">+7.2% YoY</div></div>
+    <div class="kpi-card"><div class="kpi-label">Group PAT</div><div class="kpi-val">${fmtL(4940)}</div><div class="kpi-delta up">+5.8% YoY</div></div>
+    <div class="kpi-card"><div class="kpi-label">EBITDA margin</div><div class="kpi-val">33.7%</div><div class="kpi-delta up">+0.4pp YoY</div></div>
+    <div class="kpi-card"><div class="kpi-label">Net worth</div><div class="kpi-val">${fmtL(58700)}</div><div class="kpi-delta up">+4.1% YoY</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total borrowings</div><div class="kpi-val">${fmtL(56000)}</div><div class="kpi-delta dn">+2.1% YoY</div></div>
+    <div class="kpi-card"><div class="kpi-label">D/E ratio</div><div class="kpi-val">—</div><div class="kpi-delta">Pending data</div></div>`;
+  document.getElementById('revBars').innerHTML=misData.slice(0,8).map(d=>`
+    <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:var(--text2)">${d.name}</span><span style="font-weight:600">${fmtL(d.revenue)}</span></div>
+    <div style="height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${(d.revenue/maxR*100).toFixed(1)}%;background:#378ADD;border-radius:3px;"></div></div></div>`).join('');
+  document.getElementById('borrBars').innerHTML=misData.filter(d=>d.borrowings>0).map(d=>`
+    <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:var(--text2)">${d.name}</span><span style="font-weight:600;color:${d.ic?'var(--amber)':'var(--text1)'}">${fmtL(d.borrowings)}</span></div>
+    <div style="height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${(d.borrowings/maxB*100).toFixed(1)}%;background:${d.ic?'#EF9F27':'var(--purple)'};border-radius:3px;"></div></div></div>`).join('');
+  renderMISTbody([...misData]);
+}
+function renderMISTbody(data){
+  document.getElementById('misTbody').innerHTML=data.map(d=>{
+    const pp=(d.pat/d.revenue*100).toFixed(1);const de=(d.borrowings/d.equity).toFixed(2);
+    return `<tr><td style="font-size:11px;font-weight:600">${d.name}</td><td>${fmtL(d.revenue)}</td><td style="color:var(--green)">${fmtL(d.pat)}</td><td><span class="badge ${pp>=10?'b-done':'b-pend'}">${pp}%</span></td><td>${fmtL(d.assets)}</td><td>${fmtL(d.borrowings)}</td><td><span class="badge ${de<=1?'b-done':'b-pend'}">${de}x</span></td><td>${d.ic?'<span class="badge b-ic">IC</span>':'<span style="font-size:11px;color:var(--text3)">—</span>'}</td></tr>`;
+  }).join('');
+}
+function sortMIS(by){renderMISTbody([...misData].sort((a,b)=>b[by]-a[by]));}
+function renderPromoter(){
+  const maxR=Math.max(...misData.map(d=>d.revenue));
+  const hasProData=misData.some(d=>d.revenue>0);
+  document.getElementById('proRevBars').innerHTML=hasProData
+    ? misData.filter(d=>d.revenue>0).sort((a,b)=>b.revenue-a.revenue).slice(0,5).map(d=>`
+        <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:var(--text2)">${d.name}</span><span style="font-weight:600">${fmtL(d.revenue)}</span></div>
+        <div style="height:6px;background:var(--bg2);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${(d.revenue/maxR*100).toFixed(1)}%;background:var(--purple);border-radius:3px;"></div></div></div>`).join('')
+    : '<div style="color:var(--text3);font-size:12px;padding:12px 0;">No revenue data yet — awaiting P&L entries from companies.</div>';
+  const totalRevP=misData.reduce((s,d)=>s+d.revenue,0);
+  const totalPAT=misData.reduce((s,d)=>s+d.pat,0);
+  const totalAssets=misData.reduce((s,d)=>s+d.assets,0);
+  const totalBorrP=misData.reduce((s,d)=>s+d.borrowings,0);
+  const totalEquity=misData.reduce((s,d)=>s+d.equity,0);
+  const patMargin=totalRevP>0?((totalPAT/totalRevP)*100).toFixed(1):'—';
+  const deRatio=totalEquity>0?(totalBorrP/totalEquity).toFixed(2)+'x':'—';
+  const roa=totalAssets>0?((totalPAT/totalAssets)*100).toFixed(1)+'%':'—';
+  document.getElementById('ratioTable').innerHTML=`
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Debt / equity</span><span style="font-weight:600">${deRatio}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border)"><span style="color:var(--text2)">Return on assets</span><span style="font-weight:600">${roa}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px"><span style="color:var(--text2)">PAT margin</span><span style="font-weight:600;color:var(--green)">${patMargin}%</span></div>`;
+  document.getElementById('proLoanBody').innerHTML=loans.map(l=>`<tr>
+    <td style="font-size:11px">${l.borrower.split(' ').slice(0,2).join(' ')}</td>
+    <td style="font-size:11px">${l.lender}</td>
+    <td><span class="badge ${l.ic?'b-ic':'b-neu'}">${l.ic?'Interco':'External'}</span></td>
+    <td style="font-weight:600">${fmtL(l.outstanding)}</td>
+    <td>${fmtD(l.rate)}%</td>
+    <td style="color:var(--amber)">${fmtL((l.outstanding*l.rate/100/4).toFixed(0))}</td>
+  </tr>`).join('');
+}
+function showExport(title){
+  document.getElementById('exportTitle').textContent=title+' — preview';
+  document.getElementById('exportBody').innerHTML=`
+    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Showing top rows. Full report downloads as Excel/PDF in deployment.</div>
+    <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">
+      <thead><tr style="background:var(--bg2)"><th style="padding:5px 8px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);width:35%">Line item</th><th style="padding:5px 8px;text-align:right;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);width:22%">Q1 FY26</th><th style="padding:5px 8px;text-align:right;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);width:22%">Q4 FY25</th><th style="padding:5px 8px;text-align:right;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);width:21%">YoY %</th></tr></thead>
+      <tbody>
+        <tr><td style="padding:5px 8px;border-bottom:1px solid var(--border)">Total borrowings</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">56,000</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">57,200</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border);color:var(--green)">+7.7%</td></tr>
+        <tr><td style="padding:5px 8px;border-bottom:1px solid var(--border)">Long-term borrowings</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">43,500</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">44,800</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border);color:var(--green)">+8.2%</td></tr>
+        <tr><td style="padding:5px 8px;border-bottom:1px solid var(--border)">Short-term borrowings</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">12,500</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">12,400</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border);color:var(--red)">+5.9%</td></tr>
+        <tr><td style="padding:5px 8px">Finance costs (Q)</td><td style="padding:5px 8px;text-align:right">1,421</td><td style="padding:5px 8px;text-align:right">1,380</td><td style="padding:5px 8px;text-align:right;color:var(--red)">+13.7%</td></tr>
+      </tbody>
+    </table>`;
+  document.getElementById('exportPreview').style.display='block';
+}
+function renderTrend(){
+  const metric=document.getElementById('trendMetric').value;
+  const data=trendData[metric];
+  const labels2={revenue:'Revenue',pat:'PAT',borrowings:'Borrowings',assets:'Total assets'};
+  document.getElementById('trendTitle').textContent=labels2[metric]+' trend — group total (₹ Lakhs)';
+  const maxV=Math.max(...data);
+  document.getElementById('trendChart').innerHTML=`
+    <div style="display:flex;align-items:flex-end;gap:14px;height:150px;padding-bottom:26px;border-bottom:1px solid var(--border);margin-bottom:10px;">
+      ${data.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <div style="font-size:11px;font-weight:600;">${fmtL(v)}</div>
+        <div style="width:100%;background:${i===4?'var(--blue)':'var(--blue-mid)'};border-radius:3px 3px 0 0;height:${Math.round(v/maxV*100)}px;"></div>
+        <div style="font-size:10px;color:var(--text2);text-align:center;">${trendLabels[i]}</div>
+      </div>`).join('')}
+    </div>`;
+  const rows=[['Revenue (&#8377;L)',...trendData.revenue],['PAT (&#8377;L)',...trendData.pat],['Borrowings (&#8377;L)',...trendData.borrowings],['Assets (&#8377;L)',...trendData.assets]];
+  document.getElementById('trendBody').innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r[0]}</td>${r.slice(1).map((v,i)=>{const prev=r[i];const chg=prev?((v-prev)/prev*100).toFixed(1):'';return `<td style="text-align:right">${fmtL(v)}${i>0&&prev?`<br><span style="font-size:10px;color:${chg>=0?'var(--green)':'var(--red)'}">${chg>=0?'+':''}${chg}%</span>`:''}</td>`;}).join('')}</tr>`).join('');
+}
+
+// ===================== DEPLOY GUIDE =====================
+const deployStepsData=[
+  {title:"Download & save the app",time:"5 min",content:`<div class="sub-step"><div class="sub-num">1</div><div class="sub-text">You are already using this file! Save this page: In your browser press <strong>Ctrl+S</strong> (Windows) or <strong>Cmd+S</strong> (Mac).</div></div><div class="sub-step"><div class="sub-num">2</div><div class="sub-text">Save it as <strong>index.html</strong> and place it in a new folder called <strong>group-mis</strong> on your desktop.</div></div><div class="notice n-green" style="margin-top:8px;">This entire app is self-contained in this single file. No other files needed.</div>`},
+  {title:"Create free Vercel account",time:"5 min",content:`<div class="sub-step"><div class="sub-num">1</div><div class="sub-text">Go to <a href="https://vercel.com/signup" target="_blank">vercel.com/signup</a> and sign up with Google. No credit card needed.</div></div><div class="sub-step"><div class="sub-num">2</div><div class="sub-text">Select <strong>Personal</strong> and <strong>Other</strong> when asked. Click Continue.</div></div><div class="notice n-blue" style="margin-top:8px;">Vercel free plan is fully sufficient — unlimited deployments, HTTPS, custom domain support.</div>`},
+  {title:"Upload & deploy on Vercel",time:"10 min",content:`<div class="sub-step"><div class="sub-num">1</div><div class="sub-text">On Vercel dashboard click <strong>Add New → Project</strong>.</div></div><div class="sub-step"><div class="sub-num">2</div><div class="sub-text">Drag and drop your <strong>group-mis</strong> folder into the upload area. Vercel auto-detects it as a static site.</div></div><div class="sub-step"><div class="sub-num">3</div><div class="sub-text">Click <strong>Deploy</strong>. In ~30 seconds you get a live URL like: <span class="code-box" style="display:inline;padding:2px 6px;">group-mis-abc123.vercel.app</span></div></div>`},
+  {title:"Create Google Sheet backend",time:"20 min",content:`<div class="sub-step"><div class="sub-num">1</div><div class="sub-text">Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> → create a new spreadsheet named <strong>Group MIS — Master Data</strong>.</div></div><div class="sub-step"><div class="sub-num">2</div><div class="sub-text">Create 8 tabs: Companies, Users, Loans, Transactions, BalanceSheet, PnL, CashFlow, Eliminations.</div></div><div class="notice n-blue" style="margin-top:8px;">Ask Claude: "Give me the Google Sheets column structure for Group MIS backend" to get exact headers for all 8 tabs.</div>`},
+  {title:"Enable Google Sheets API",time:"15 min",content:`<div class="sub-step"><div class="sub-num">1</div><div class="sub-text">Go to <a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> → Create Project → name it <strong>Group MIS</strong>.</div></div><div class="sub-step"><div class="sub-num">2</div><div class="sub-text">APIs & Services → Library → search <strong>Google Sheets API</strong> → Enable.</div></div><div class="sub-step"><div class="sub-num">3</div><div class="sub-text">APIs & Services → Credentials → Create Credentials → API Key. Copy the key.</div></div><div class="code-box">AIzaSyD-XXXXXXXXXXXXXXXXXXXX (example format)</div>`},
+  {title:"Connect app to Google Sheets",time:"10 min",content:`<div class="sub-step"><div class="sub-num">1</div><div class="sub-text">Open <strong>index.html</strong> in Notepad (Windows) or TextEdit (Mac).</div></div><div class="sub-step"><div class="sub-num">2</div><div class="sub-text">Find the CONFIG section at top of file and replace the placeholders:</div></div><div class="code-box">const CONFIG = {<br>&nbsp;&nbsp;SHEET_ID: "1PedX0me5z71TCyueNWOMbyy6-421vZ6whwY0HNxFmm0",<br>&nbsp;&nbsp;API_KEY: "AIzaSyDwO64kM7_mc7n_5j-daThu1beenYldOho"<br>};</div><div class="sub-step"><div class="sub-num">3</div><div class="sub-text">Save file. Re-drag folder to Vercel. Auto-redeploys in 30 seconds.</div></div>`},
+  {title:"Add companies & users",time:"30 min",content:`<div class="sub-step"><div class="sub-num">1</div><div class="sub-text">Open the Google Sheet → <strong>Companies tab</strong> → add all 21 companies with name, type, CIN.</div></div><div class="sub-step"><div class="sub-num">2</div><div class="sub-text">Open <strong>Users tab</strong> → add each user with ID, password, role and company IDs (comma-separated).</div></div><div class="notice n-amber" style="margin-top:8px;">Example: <strong>amit.desai | Pass@123 | company | 1,2,3,4,5</strong> gives access to companies 1–5 with one login.</div>`},
+  {title:"Test & go live",time:"1 hour",content:`<div class="sub-step"><div class="sub-num">1</div><div class="sub-text">Open your Vercel URL. Log in as a company user. Enter sample data. Log out. Log in as Admin and verify the MIS dashboard shows the data.</div></div><div class="sub-step"><div class="sub-num">2</div><div class="sub-text">Send all company users: App URL, their User ID, Password, and which companies they manage.</div></div><div class="notice n-green" style="margin-top:8px;">Your Group MIS system is now live for all 21 companies!</div>`}
+];
+let depCompleted=new Array(deployStepsData.length).fill(false);
+function renderDeploySteps(){
+  document.getElementById('deploySteps').innerHTML=deployStepsData.map((s,i)=>`
+    <div class="step-card">
+      <div class="step-head" onclick="toggleDep(${i})">
+        <div class="step-num ${depCompleted[i]?'sn-done':i===0||depCompleted.slice(0,i).every(Boolean)?'sn-active':'sn-pend'}">${depCompleted[i]?'&#10003;':i+1}</div>
+        <div style="flex:1;font-size:13px;font-weight:600;color:var(--text1);">${s.title}</div>
+        <span style="font-size:11px;color:var(--text2);margin-right:8px;">${s.time}</span>
+        <span class="badge b-blue">Free</span>
+        <span style="font-size:12px;color:var(--text3);margin-left:8px;">&#9656;</span>
+      </div>
+      <div class="step-body" id="depBody${i}">
+        ${s.content}
+        <div class="divider"></div>
+        <button class="btn ${depCompleted[i]?'':'btn-green'} btn-sm" onclick="markDep(${i},event)">${depCompleted[i]?'Mark incomplete':'Mark complete &#10003;'}</button>
+      </div>
+    </div>`).join('');
+  updateDepProgress();
+}
+function toggleDep(i){
+  const b=document.getElementById('depBody'+i);
+  b.classList.toggle('open');
+}
+function markDep(i,e){
+  e.stopPropagation();depCompleted[i]=!depCompleted[i];updateDepProgress();renderDeploySteps();
+  setTimeout(()=>toggleDep(i),50);
+}
+function updateDepProgress(){
+  const done=depCompleted.filter(Boolean).length;
+  document.getElementById('depProgress').style.width=(done/deployStepsData.length*100)+'%';
+}
+
+// ===================== INIT =====================
+function initFormRows(){
+  makeRows(bsLines.nca,'nca','ncaRows');makeRows(bsLines.ca,'ca','caRows');
+  makeRows(bsLines.eq,'eq','eqRows');makeRows(bsLines.ncl,'ncl','nclRows');makeRows(bsLines.cl,'cl','clRows');
+  makeRows(plLines.inc,'inc','incRows');makeRows(plLines.exp,'exp','expRows');
+  makeRows(cfLines.oper,'cfo','cfORows');makeRows(cfLines.inv,'cfi','cfIRows');makeRows(cfLines.fin,'cff','cfFRows');
+}
+initFormRows();
+renderCos();
+// Load live data from Google Sheets on startup
+loadFromSheets();
+</script>
+</body>
+</html>
