@@ -207,6 +207,9 @@ tr:hover td{background:var(--bg2);}
   </div>
   <button class="btn btn-blue" style="width:100%;padding:9px;" onclick="doLogin()">Sign In</button>
   <div class="err" id="loginErr">Invalid credentials. Please try again.</div>
+  <div id="loginLoading" style="font-size:12px;color:var(--text2);text-align:center;margin-top:8px;display:block;">
+    ⏳ Loading data from server...
+  </div>
   <div style="margin-top:12px;text-align:center;">
     <span onclick="showForgot()" style="font-size:12px;color:var(--blue);cursor:pointer;text-decoration:underline;">Forgot your password?</span>
   </div>
@@ -825,9 +828,9 @@ tr:hover td{background:var(--bg2);}
   <div class="metrics">
     <div class="mc"><div class="ml">Group revenue</div><div class="mv">—</div><div class="ms">Pending data entry</div></div>
     <div class="mc"><div class="ml">Group PAT</div><div class="mv">—</div><div class="ms">Pending data entry</div></div>
-    <div class="mc"><div class="ml">Group net worth</div><div class="mv">&#8377;58,700L</div><div class="ms" style="color:var(--green);">+4.1% growth</div></div>
+    <div class="mc"><div class="ml">Group net worth</div><div class="mv" id="proNetWorth">—</div><div class="ms">Pending data entry</div></div>
     <div class="mc"><div class="ml">Total borrowings</div><div class="mv" id="proBorr">—</div><div class="ms" style="color:var(--amber);">Pending data entry</div></div>
-    <div class="mc"><div class="ml">EBITDA</div><div class="mv">&#8377;17,200L</div><div class="ms">Margin: 33.7%</div></div>
+    <div class="mc"><div class="ml">EBITDA</div><div class="mv" id="proEBITDA">—</div><div class="ms">Pending data entry</div></div>
     <div class="mc"><div class="ml">Interest coverage</div><div class="mv">—</div><div class="ms">Pending data entry</div></div>
   </div>
   <div class="g2">
@@ -1088,6 +1091,10 @@ async function loadFromSheets() {
       });
     }
 
+    // Give admin access to all companies
+    const adminUser = users.find(u => u.id === "admin");
+    if (adminUser) adminUser.cos = companies.map(co => co.id);
+
     // Update all dropdowns with master data
     updateLoanTypeDropdowns();
     updateLenderDropdowns();
@@ -1109,6 +1116,8 @@ async function loadFromSheets() {
     console.error("loadFromSheets error:", e);
   } finally {
     showAppLoader(false);
+    const ll = document.getElementById('loginLoading');
+    if (ll) ll.style.display = 'none';
   }
 }
 
@@ -1137,49 +1146,12 @@ function filterLenderList(el) {
   // datalist handles filtering natively
 }
 
-let companies=[
-  {id:1,name:"Emami Limited",type:"HQ",cin:"L63993WB1983PLC036030",status:"Active"},
-  {id:2,name:"Emami Agrotech Limited",type:"Subsidiary",cin:"U15142WB1990PLC048739",status:"Active"},
-  {id:3,name:"Emami Paper Mills Limited",type:"Subsidiary",cin:"L21019WB1981PLC033580",status:"Active"},
-  {id:4,name:"Emami Realty Limited",type:"Subsidiary",cin:"L45400WB2008PLC121426",status:"Active"},
-  {id:5,name:"Emami Frank Ross Limited",type:"Subsidiary",cin:"U52190WB1993PLC058956",status:"Active"},
-  {id:6,name:"Starmark Retail Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
-  {id:7,name:"Emami Art Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
-  {id:8,name:"Brillare Science Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
-  {id:9,name:"Helios Lifestyle Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
-  {id:10,name:"The Man Company Pvt Ltd",type:"Subsidiary",cin:"—",status:"Active"},
-  {id:11,name:"Cannis Lupus Services India Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
-  {id:12,name:"Axiom Ayurveda Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
-  {id:13,name:"Axiom Food & Beverages Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
-  {id:14,name:"Axiom Packwell Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
-  {id:15,name:"Tru Native F&B Pvt Ltd",type:"Associate",cin:"—",status:"Active"},
-  {id:16,name:"Emami Zandu Pharmaceutical Works Ltd",type:"Subsidiary",cin:"—",status:"Active"},
-  {id:17,name:"Emami Infrastructure Ltd",type:"Subsidiary",cin:"—",status:"Active"},
-  {id:18,name:"Emami Capital Markets & Investments Ltd",type:"Subsidiary",cin:"—",status:"Active"},
-  {id:19,name:"Diwakar Finvest Private Limited",type:"Promoter Entity",cin:"U64990WB1996PTC081001",status:"Active"},
-  {id:20,name:"Suraj Finvest Private Limited",type:"Promoter Entity",cin:"U65100WB1996PTC081366",status:"Active"},
-  {id:21,name:"Pan Emami Cosmed Limited",type:"Group Company",cin:"U24246WB1994PLC061553",status:"Active"}
-];
+// Companies loaded from Google Sheet
+let companies=[];
 
+// Users loaded from Google Sheet — only emergency admin hardcoded as fallback
 let users=[
-  {id:"admin",name:"Admin User",pass:"Admin@123",role:"hq",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"},
-  {id:"hq.mis",name:"MIS Team User",pass:"MIS@2025",role:"hq",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"},
-  {id:"emami.hq",name:"Group Finance Head",pass:"Emami@123",role:"hq",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"},
-  {id:"co.agrotech",name:"Agrotech Finance Manager",pass:"Agro@456",role:"company",cos:[2],status:"active"},
-  {id:"co.paper",name:"Paper Mills Accounts",pass:"Paper@456",role:"company",cos:[3],status:"active"},
-  {id:"co.realty",name:"Realty Finance Head",pass:"Realty@456",role:"company",cos:[4],status:"active"},
-  {id:"co.frankross",name:"Frank Ross Accounts",pass:"Frank@456",role:"company",cos:[5],status:"active"},
-  {id:"co.starmark",name:"Starmark Finance",pass:"Star@456",role:"company",cos:[6],status:"active"},
-  {id:"co.brillare",name:"Brillare Accounts",pass:"Bril@456",role:"company",cos:[8],status:"active"},
-  {id:"co.helios",name:"Helios Finance",pass:"Heli@456",role:"company",cos:[9],status:"active"},
-  {id:"co.mancompany",name:"The Man Company Finance",pass:"ManCo@456",role:"company",cos:[10],status:"active"},
-  {id:"co.diwakar",name:"Diwakar Finvest Manager",pass:"Diwa@456",role:"company",cos:[19],status:"active"},
-  {id:"co.suraj",name:"Suraj Finvest Manager",pass:"Sura@456",role:"company",cos:[20],status:"active"},
-  {id:"co.panemami",name:"Pan Emami Cosmed Finance",pass:"PanE@456",role:"company",cos:[21],status:"active"},
-  {id:"co.multi1",name:"Regional Controller — East",pass:"Multi@456",role:"company",cos:[2,3,4],status:"active"},
-  {id:"co.multi2",name:"Regional Controller — West",pass:"Multi@789",role:"company",cos:[5,6,7,8],status:"active"},
-  {id:"promo1",name:"Promoter — RS Agarwal Family",pass:"Promo@123",role:"promoter",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"},
-  {id:"promo2",name:"Promoter — RS Goenka Family",pass:"Promo@456",role:"promoter",cos:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21],status:"active"}
+  {id:"admin",name:"Admin User",pass:"Admin@123",role:"hq",cos:[],status:"active"}
 ];
 
 let loans=[];
@@ -1847,7 +1819,7 @@ function renderConsDash(){
   document.getElementById('consDashMetrics').innerHTML=`
     <div class="mc"><div class="ml">Total assets</div><div class="mv" style="font-size:15px">${fmtL(totalAssets)}</div><div class="ms">${v==='elim'?'After IC elim':'Gross'}</div></div>
     <div class="mc"><div class="ml">Group revenue</div><div class="mv" style="font-size:15px">${fmtL(totalRev)}</div><div class="ms">${v==='elim'?'IC removed':'Gross'}</div></div>
-    <div class="mc"><div class="ml">Group PAT</div><div class="mv" style="font-size:15px">${fmtL(4940)}</div><div class="ms">Net profit</div></div>
+    <div class="mc"><div class="ml">Group PAT</div><div class="mv" style="font-size:15px">${totalPAT>0?fmtL(totalPAT):"—"}</div><div class="ms">Net profit</div></div>
     <div class="mc"><div class="ml">Total borrowings</div><div class="mv" style="font-size:15px">${fmtL(totalBorr)}</div></div>
     <div class="mc"><div class="ml">D/E ratio</div><div class="mv" style="font-size:15px">${(totalBorr/58700).toFixed(2)}x</div></div>`;
   document.getElementById('bsSnap').innerHTML=`
@@ -1958,11 +1930,11 @@ function renderMIS(){
   const maxR=Math.max(...misData.map(d=>d.revenue));
   const maxB=Math.max(...misData.map(d=>d.borrowings));
   document.getElementById('misKPIs').innerHTML=`
-    <div class="kpi-card"><div class="kpi-label">Group revenue</div><div class="kpi-val">${fmtL(51000)}</div><div class="kpi-delta up">+7.2% YoY</div></div>
-    <div class="kpi-card"><div class="kpi-label">Group PAT</div><div class="kpi-val">${fmtL(4940)}</div><div class="kpi-delta up">+5.8% YoY</div></div>
-    <div class="kpi-card"><div class="kpi-label">EBITDA margin</div><div class="kpi-val">33.7%</div><div class="kpi-delta up">+0.4pp YoY</div></div>
-    <div class="kpi-card"><div class="kpi-label">Net worth</div><div class="kpi-val">${fmtL(58700)}</div><div class="kpi-delta up">+4.1% YoY</div></div>
-    <div class="kpi-card"><div class="kpi-label">Total borrowings</div><div class="kpi-val">${fmtL(56000)}</div><div class="kpi-delta dn">+2.1% YoY</div></div>
+    <div class="kpi-card"><div class="kpi-label">Group revenue</div><div class="kpi-val" id="proKpiRev">—</div><div class="kpi-delta">Pending data entry</div></div>
+    <div class="kpi-card"><div class="kpi-label">Group PAT</div><div class="kpi-val" id="proKpiPAT">—</div><div class="kpi-delta">Pending data entry</div></div>
+    <div class="kpi-card"><div class="kpi-label">EBITDA margin</div><div class="kpi-val" id="proKpiEBITDA">—</div><div class="kpi-delta">Pending data entry</div></div>
+    <div class="kpi-card"><div class="kpi-label">Net worth</div><div class="kpi-val" id="proKpiNW">—</div><div class="kpi-delta">Pending data entry</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total borrowings</div><div class="kpi-val" id="proKpiBorr">—</div><div class="kpi-delta">Pending data entry</div></div>
     <div class="kpi-card"><div class="kpi-label">D/E ratio</div><div class="kpi-val">—</div><div class="kpi-delta">Pending data</div></div>`;
   document.getElementById('revBars').innerHTML=misData.slice(0,8).map(d=>`
     <div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px;"><span style="color:var(--text2)">${d.name}</span><span style="font-weight:600">${fmtL(d.revenue)}</span></div>
