@@ -423,7 +423,7 @@ tr:hover td{background:var(--bg2);}
   <div class="ptitle">Loan Master</div>
   <div class="psub">All registered loan facilities.</div>
   <div class="card">
-    <div class="ch"><h3>All facilities</h3><span style="font-size:11px;color:var(--text2);" id="masterCount">5 facilities</span></div>
+    <div class="ch"><h3>All facilities</h3><span style="font-size:11px;color:var(--text2);" id="masterCount">0 facilities</span></div>
     <div class="tw"><table>
       <thead><tr><th>#</th><th>Borrower</th><th>Lender</th><th>Type</th><th>Rate%</th><th>Sanction</th><th>Outstanding</th><th>Status</th><th>Action</th></tr></thead>
       <tbody id="masterBody"></tbody>
@@ -439,15 +439,13 @@ tr:hover td{background:var(--bg2);}
     <h3>Loan details</h3>
     <div class="fg2">
       <div class="fl"><label>Borrower company</label><select id="lBorrower"><option value="">Select...</option></select></div>
-      <div class="fl"><label>Loan type</label><select id="lType">
-        <option>Term loan — bank</option><option>Working capital — bank</option><option>Inter-company loan</option>
-        <option>Promoter loan</option><option>NBFC loan</option><option>Debentures (NCD)</option>
-        <option>External commercial borrowing</option><option>Overdraft / CC limit</option>
-        <option>Hire purchase / leasing</option><option>Other borrowing</option>
-      </select></div>
+      <div class="fl"><label>Loan type</label><select id="lType"><option>Loading...</option></select></div>
     </div>
     <div class="fg2">
-      <div class="fl"><label>Lender name</label><input type="text" id="lLender" placeholder="e.g. SBI, HDFC, Alpha Holdings"/></div>
+      <div class="fl"><label>Lender name</label>
+        <input type="text" id="lLender" placeholder="Type lender name..." list="lLenderList" autocomplete="off"/>
+        <datalist id="lLenderList"></datalist>
+      </div>
       <div class="fl"><label>Intercompany loan?</label><select id="lIC" onchange="toggleICLender()"><option value="no">No — external lender</option><option value="yes">Yes — within group</option></select></div>
     </div>
     <div id="lICRow" style="display:none;" class="fg2">
@@ -920,11 +918,12 @@ tr:hover td{background:var(--bg2);}
 // ===================== DATA =====================
 // ===== GOOGLE SHEETS CONFIG =====
 const CONFIG = {
-  SHEET_ID: "1PedX0me5z71TCyueNWOMbyy6-421vZ6whwY0HNxFmm0",
-  API_KEY: "AIzaSyDwO64kM7_mc7n_5j-daThu1beenYldOho"
+  SHEET_ID: "1Ti0GeFqmRR2L9TsktpV_gRy9bR8dHFu-AdMnfW_t3YU",
+  API_KEY: "AIzaSyDwO64kM7_mc7n_5j-daThu1beenYldOho",
+  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyHfz09JOfjYRBy8CgeJFoityzCsaLlcDP02kuN-oivUwVRdBVHdjfelovaIyN96bUH/exec"
 };
 
-// Fetch a sheet tab from Google Sheets API
+// ===================== GOOGLE SHEETS API =====================
 async function fetchSheet(tabName) {
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values/${encodeURIComponent(tabName)}?key=${CONFIG.API_KEY}`;
@@ -939,58 +938,203 @@ async function fetchSheet(tabName) {
       headers.forEach((h, i) => { obj[h] = row[i] || ""; });
       return obj;
     });
-  } catch(e) { return null; }
+  } catch(e) { console.error("fetchSheet error:", tabName, e); return null; }
 }
 
-// Load companies & users from Google Sheets, fall back to defaults
+async function postToScript(payload) {
+  if (!CONFIG.SCRIPT_URL) {
+    console.warn("Apps Script URL not set — data saved in memory only");
+    return { success: true, memoryOnly: true };
+  }
+  try {
+    const res = await fetch(CONFIG.SCRIPT_URL, {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+    return await res.json();
+  } catch(e) {
+    console.error("Script post error:", e);
+    return { success: false, error: e.toString() };
+  }
+}
+
+// Master data loaded from sheets
+let masterLoanTypes = [];
+let masterLenders = [];
+let sheetLoans = [];
+let sheetTransactions = [];
+let sheetFinancialData = [];
+
 async function loadFromSheets() {
-  const [sheetCos, sheetUsers] = await Promise.all([
-    fetchSheet("Companies"),
-    fetchSheet("Users")
-  ]);
+  showAppLoader(true);
+  try {
+    const [sheetCos, sheetUsers, sheetLT, sheetLend, sheetLns, sheetTxns, sheetFD] = await Promise.all([
+      fetchSheet("Companies"),
+      fetchSheet("Users"),
+      fetchSheet("LoanTypes"),
+      fetchSheet("Lenders"),
+      fetchSheet("Loans"),
+      fetchSheet("Transactions"),
+      fetchSheet("FinancialData")
+    ]);
 
-  if (sheetCos && sheetCos.length > 0) {
-    companies.length = 0;
-    sheetCos.forEach((r, i) => {
-      companies.push({
-        id: parseInt(r.id) || (i + 1),
-        name: r.name || "",
-        type: r.type || "",
-        cin: r.cin || "—",
-        status: r.status || "Active"
+    // Load companies
+    if (sheetCos && sheetCos.length > 0) {
+      companies.length = 0;
+      sheetCos.forEach((r, i) => {
+        if (r.name) companies.push({
+          id: parseInt(r.id) || (i + 1),
+          name: r.name,
+          type: r.type || "",
+          cin: r.cin || "—",
+          status: r.status || "Active"
+        });
       });
-    });
-  }
+    }
 
-  if (sheetUsers && sheetUsers.length > 0) {
-    users.length = 0;
-    sheetUsers.forEach(r => {
-      const cosRaw = r.companies || "";
-      const cos = cosRaw.toLowerCase() === "all"
-        ? companies.map(c => c.id)
-        : cosRaw.split(",").map(x => parseInt(x.trim())).filter(Boolean);
-      users.push({
-        id: r.id || "",
-        name: r.name || "",
-        pass: r.password || "",
-        role: r.role || "company",
-        cos,
-        status: "active"
+    // Load users
+    if (sheetUsers && sheetUsers.length > 0) {
+      users.length = 0;
+      sheetUsers.forEach(r => {
+        if (!r.id) return;
+        const cosRaw = r.companies || "";
+        const cos = cosRaw.toLowerCase() === "all"
+          ? companies.map(c => c.id)
+          : cosRaw.split(",").map(x => parseInt(x.trim())).filter(Boolean);
+        users.push({ id: r.id, name: r.name || "", pass: r.password || "", role: r.role || "company", cos, status: "active" });
       });
-    });
-  }
+    }
 
-  // Re-render everything now that data is loaded
-  populateSelects();
-  renderCos();
-  renderUsers();
-  renderLoanSummary();
-  renderTxns('all');
-  renderConsDataAll();
-  renderMIS();
-  renderPromoter();
-  renderTrend();
-  renderDeploySteps();
+    // Load loan types
+    if (sheetLT && sheetLT.length > 0) {
+      masterLoanTypes = sheetLT.filter(r => r.name && r.active !== "No").map(r => r.name);
+    } else {
+      masterLoanTypes = ["Term loan — bank","Working capital — bank","Inter-company loan","Promoter loan","NBFC loan","Debentures (NCD)","External commercial borrowing","Overdraft / CC limit","Hire purchase / leasing","Other borrowing"];
+    }
+
+    // Load lenders
+    if (sheetLend && sheetLend.length > 0) {
+      masterLenders = sheetLend.filter(r => r.name && r.active !== "No").map(r => ({ id: r.id, name: r.name, type: r.type || "" }));
+    } else {
+      masterLenders = [
+        {id:"1",name:"State Bank of India",type:"Bank"},
+        {id:"2",name:"HDFC Bank",type:"Bank"},
+        {id:"3",name:"ICICI Bank",type:"Bank"},
+        {id:"4",name:"Axis Bank",type:"Bank"},
+        {id:"5",name:"Kotak Mahindra Bank",type:"Bank"},
+        {id:"6",name:"Tata Capital",type:"NBFC"},
+        {id:"7",name:"Bajaj Finance",type:"NBFC"},
+        {id:"8",name:"Intercompany",type:"Group"},
+        {id:"9",name:"Promoter",type:"Promoter"}
+      ];
+    }
+
+    // Load loans
+    if (sheetLns && sheetLns.length > 0) {
+      loans.length = 0;
+      sheetLns.forEach(r => {
+        if (!r.id) return;
+        loans.push({
+          id: r.id,
+          borrowerId: parseInt(r.companyId),
+          borrower: r.companyName,
+          lender: r.lenderName,
+          lenderId: r.lenderId,
+          type: r.loanType,
+          ic: r.isIC === "true" || r.isIC === "Yes",
+          icLenderId: r.icLenderCompanyId || null,
+          sanction: parseFloat(r.sanctionAmt) || 0,
+          outstanding: parseFloat(r.outstandingAmt) || 0,
+          rate: parseFloat(r.rate) || 0,
+          date: r.sanctionDate,
+          tenure: parseInt(r.tenure) || 0,
+          ref: r.loanRef,
+          purpose: r.purpose,
+          status: r.status || "Active"
+        });
+      });
+    }
+
+    // Load transactions
+    if (sheetTxns && sheetTxns.length > 0) {
+      transactions.length = 0;
+      sheetTxns.forEach(r => {
+        if (!r.id) return;
+        transactions.push({
+          id: r.id,
+          loanId: r.loanId,
+          coId: parseInt(r.companyId),
+          co: r.companyName,
+          date: r.date,
+          type: r.type,
+          amt: parseFloat(r.amount) || 0,
+          balance: parseFloat(r.balance) || 0,
+          ref: r.bankRef,
+          remarks: r.remarks
+        });
+      });
+    }
+
+    // Load financial data
+    if (sheetFD && sheetFD.length > 0) {
+      sheetFinancialData = sheetFD;
+      // Update entry status
+      sheetFD.forEach(r => {
+        const cid = parseInt(r.companyId);
+        if (!entryStatus[cid]) entryStatus[cid] = {bs:false,pl:false,cf:false};
+        if (r.statementType === "BS") entryStatus[cid].bs = true;
+        if (r.statementType === "PL") entryStatus[cid].pl = true;
+        if (r.statementType === "CF") entryStatus[cid].cf = true;
+      });
+    }
+
+    // Update all dropdowns with master data
+    updateLoanTypeDropdowns();
+    updateLenderDropdowns();
+
+    // Re-render all views
+    populateSelects();
+    renderCos();
+    renderUsers();
+    renderLoanSummary();
+    renderTxns("all");
+    renderConsDataAll();
+    renderMIS();
+    renderPromoter();
+    renderTrend();
+    renderDeploySteps();
+    renderEntryStatus();
+
+  } catch(e) {
+    console.error("loadFromSheets error:", e);
+  } finally {
+    showAppLoader(false);
+  }
+}
+
+function showAppLoader(show) {
+  let el = document.getElementById("appLoader");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "appLoader";
+    el.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:9999;height:3px;background:var(--blue);transition:opacity 0.3s;";
+    document.body.appendChild(el);
+  }
+  el.style.opacity = show ? "1" : "0";
+}
+
+function updateLoanTypeDropdowns() {
+  const el = document.getElementById("lType");
+  if (el) el.innerHTML = masterLoanTypes.map(t => `<option value="${t}">${t}</option>`).join("");
+}
+
+function updateLenderDropdowns() {
+  const dl = document.getElementById("lLenderList");
+  if (dl) dl.innerHTML = masterLenders.map(l => `<option value="${l.name}">`).join("");
+}
+
+function filterLenderList(el) {
+  // datalist handles filtering natively
 }
 
 let companies=[
@@ -1309,7 +1453,7 @@ function renderMaster(){
 function toggleICLender(){
   document.getElementById('lICRow').style.display=document.getElementById('lIC').value==='yes'?'grid':'none';
 }
-function saveLoan(){
+async function saveLoan(){
   const bId=parseInt(document.getElementById('lBorrower').value);
   const co=companies.find(c=>c.id===bId);
   if(!co){alert('Please select borrower company.');return;}
@@ -1317,15 +1461,53 @@ function saveLoan(){
   const icId=ic?parseInt(document.getElementById('lICLender').value):null;
   const icCo=ic?companies.find(c=>c.id===icId):null;
   const sanction=parseFloat(document.getElementById('lSanction').value)||0;
-  loans.push({
-    id:nextLoanId++,borrowerId:bId,borrower:co.name,
-    lender:ic?(icCo?icCo.name:'Group company'):document.getElementById('lLender').value,
-    type:document.getElementById('lType').value,ic,icLenderId:icId,
-    sanction,outstanding:0,rate:parseFloat(document.getElementById('lRate').value)||0,
-    date:document.getElementById('lDate').value,tenure:parseInt(document.getElementById('lTenure').value)||0,
-    ref:document.getElementById('lRef').value,purpose:document.getElementById('lPurpose').value
+  const lenderVal=ic?(icCo?icCo.name:'Group company'):document.getElementById('lLender').value;
+  const loanType=document.getElementById('lType').value;
+  const rate=parseFloat(document.getElementById('lRate').value)||0;
+  const date=document.getElementById('lDate').value;
+  const tenure=parseInt(document.getElementById('lTenure').value)||0;
+  const ref=document.getElementById('lRef').value;
+  const purpose=document.getElementById('lPurpose').value;
+  const security=document.getElementById('lSecurity')?document.getElementById('lSecurity').value:'';
+
+  if(!sanction||!rate||!date||!ref){alert('Please fill all required fields.');return;}
+
+  const btn=document.querySelector('[onclick="saveLoan()"]');
+  if(btn){btn.disabled=true;btn.textContent='Saving...';}
+
+  // Save to memory
+  const newLoan={
+    id:'LN'+Date.now(),borrowerId:bId,borrower:co.name,
+    lender:lenderVal,lenderId:'',type:loanType,ic,icLenderId:icId,
+    sanction,outstanding:0,rate,date,tenure,ref,purpose,security,status:'Active'
+  };
+  loans.push(newLoan);
+
+  // Save to Google Sheets
+  const result=await postToScript({
+    action:'saveLoan',
+    payload:{
+      companyId:bId,companyName:co.name,loanType,
+      lenderId:'',lenderName:lenderVal,
+      isIC:ic?'Yes':'No',icLenderCompanyId:icId||'',
+      sanctionAmt:sanction,outstandingAmt:0,rate,sanctionDate:date,
+      tenure,repayFreq:'Monthly',interestAccrual:'Monthly',
+      loanRef:ref,purpose,security,status:'Active',
+      createdBy:currentUser?currentUser.id:'admin',
+    }
   });
-  alert('Loan facility saved!');showPg('loanMaster');
+
+  if(btn){btn.disabled=false;btn.textContent='Save loan facility';}
+  if(result.success){
+    if(result.id) newLoan.id=result.id;
+    alert('✅ Loan saved successfully!');
+    renderLoanSummary();
+    showPg('loanMaster');
+  } else {
+    alert('Saved in app. Note: Google Sheet sync failed — '+( result.error||'Script URL not set'));
+    renderLoanSummary();
+    showPg('loanMaster');
+  }
 }
 function loadTxnLoans(){
   const cId=parseInt(document.getElementById('txnCo').value);
@@ -1347,7 +1529,7 @@ function updateTxnCalc(){
   document.getElementById('calcAfter').innerHTML=fmtL(after);
   document.getElementById('txnCalcBox').style.display='block';
 }
-function saveTxn(){
+async function saveTxn(){
   const lId=parseInt(document.getElementById('txnLoan').value);
   const loan=loans.find(l=>l.id===lId);
   const amt=parseFloat(document.getElementById('txnAmt').value)||0;
@@ -1357,9 +1539,37 @@ function saveTxn(){
   let newBal=loan.outstanding;
   if(type==='drawdown')newBal+=amt;
   else if(type==='repayment'||type==='prepayment')newBal=Math.max(0,newBal-amt);
+
+  const txnDate=document.getElementById('txnDate').value;
+  const txnRef=document.getElementById('txnRef').value;
+  const txnRemarks=document.getElementById('txnRemarks').value;
+
+  // Save to memory
   loan.outstanding=newBal;
-  transactions.push({id:nextTxnId++,loanId:lId,coId:loan.borrowerId,co:co?co.name:'',date:document.getElementById('txnDate').value,type,amt,balance:newBal,ref:document.getElementById('txnRef').value,remarks:document.getElementById('txnRemarks').value});
-  alert('Transaction posted!');showPg('txn');
+  const newTxn={id:'TXN'+Date.now(),loanId:lId,coId:loan.borrowerId,co:co?co.name:'',date:txnDate,type,amt,balance:newBal,ref:txnRef,remarks:txnRemarks};
+  transactions.push(newTxn);
+
+  // Save to Google Sheets
+  const btn=document.querySelector('[onclick="saveTxn()"]');
+  if(btn){btn.disabled=true;btn.textContent='Posting...';}
+  const result=await postToScript({
+    action:'saveTransaction',
+    payload:{
+      loanId:lId,companyId:loan.borrowerId,companyName:co?co.name:'',
+      date:txnDate,type,amount:amt,balance:newBal,
+      bankRef:txnRef,remarks:txnRemarks,
+      postedBy:currentUser?currentUser.id:'admin'
+    }
+  });
+  if(btn){btn.disabled=false;btn.textContent='Post transaction';}
+  if(result.success){
+    alert('✅ Transaction posted successfully!');
+  } else {
+    alert('Posted in app. Note: Google Sheet sync pending.');
+  }
+  renderTxns('all');
+  renderLoanSummary();
+  showPg('txn');
 }
 function renderTxns(filter){
   let list=transactions;
@@ -1507,9 +1717,93 @@ function checkBS(){
   if(diff<0.01){box.style.cssText='padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;font-size:12px;font-weight:600;background:var(--green-light);border:1px solid #97C459;color:var(--green);display:block;';box.textContent='Balance sheet tallies! Assets = Equity & Liabilities = ₹'+fmtD(tA)+'L';}
   else{box.style.cssText='padding:8px 12px;border-radius:var(--radius);margin-bottom:12px;font-size:12px;font-weight:600;background:var(--red-light);border:1px solid #F09595;color:var(--red);display:block;';box.textContent='Does not tally. Difference: ₹'+fmtD(diff)+'L. Please check entries.';}
 }
-function saveBS(){const co=document.getElementById('bsCo').value;if(!co){alert('Select company first.');return;}entryStatus[co].bs=true;alert('Balance sheet saved!');renderEntryStatus();}
-function savePL(){const co=document.getElementById('plCo').value;if(!co){alert('Select company first.');return;}entryStatus[co].pl=true;alert('P&L saved!');renderEntryStatus();}
-function saveCF(){const co=document.getElementById('cfCo').value;if(!co){alert('Select company first.');return;}entryStatus[co].cf=true;alert('Cash flow saved!');renderEntryStatus();}
+function collectEntries(lines, prefix) {
+  return lines.map((l, i) => {
+    const cur = parseFloat(document.getElementById(prefix+'_'+i+'_c')?.value) || 0;
+    const prv = parseFloat(document.getElementById(prefix+'_'+i+'_p')?.value) || 0;
+    const ic  = parseFloat(document.getElementById(prefix+'_'+i+'_ic')?.value) || 0;
+    return { lineItem: l, currentPeriod: cur, previousPeriod: prv, icAmount: ic, isIC: ic > 0 ? 'Yes' : 'No' };
+  }).filter(e => e.currentPeriod !== 0 || e.previousPeriod !== 0);
+}
+
+async function saveFinancialStatement(stmtType, coElId, lineGroups, categories) {
+  const coId = parseInt(document.getElementById(coElId).value);
+  const periodEl = document.getElementById(coElId.replace('Co','Period'));
+  const period = periodEl ? periodEl.value : 'Q1 FY2025-26';
+  const co = companies.find(c => c.id === coId);
+  if (!co) { alert('Please select a company first.'); return; }
+
+  // Collect all entries
+  let entries = [];
+  lineGroups.forEach((group, gi) => {
+    const cat = categories[gi];
+    const pfx = Object.keys(bsLines)[gi] || pfx;
+    // map stmtType to line arrays
+    let lines = [];
+    if (stmtType === 'BS') {
+      const keys = ['nca','ca','eq','ncl','cl'];
+      lines = bsLines[keys[gi]] || [];
+      entries = entries.concat(collectEntries(lines, keys[gi]).map(e => ({...e, category: cat})));
+    } else if (stmtType === 'PL') {
+      const keys = ['inc','exp'];
+      lines = plLines[keys[gi]] || [];
+      entries = entries.concat(collectEntries(lines, keys[gi] === 'inc' ? 'inc' : 'exp').map(e => ({...e, category: cat})));
+    } else if (stmtType === 'CF') {
+      const keys = ['cfo','cfi','cff'];
+      lines = cfLines[keys[gi].replace('cf','') === 'o' ? 'oper' : keys[gi].replace('cf','') === 'i' ? 'inv' : 'fin'] || [];
+      entries = entries.concat(collectEntries(lines, keys[gi]).map(e => ({...e, category: cat})));
+    }
+  });
+
+  if (entries.length === 0) { alert('No data entered. Please fill in at least one line item.'); return; }
+
+  const btn = event?.target;
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  // Update entry status in memory
+  if (!entryStatus[coId]) entryStatus[coId] = {bs:false,pl:false,cf:false};
+  if (stmtType==='BS') entryStatus[coId].bs = true;
+  if (stmtType==='PL') entryStatus[coId].pl = true;
+  if (stmtType==='CF') entryStatus[coId].cf = true;
+
+  const result = await postToScript({
+    action: 'saveFinancial',
+    payload: {
+      companyId: coId, companyName: co.name,
+      period, statementType: stmtType,
+      entries, submittedBy: currentUser ? currentUser.id : 'admin'
+    }
+  });
+
+  if (btn) { btn.disabled = false; btn.textContent = stmtType==='BS'?'Save balance sheet':stmtType==='PL'?'Save P&L':'Save cash flow'; }
+
+  if (result.success) {
+    alert('✅ ' + (stmtType==='BS'?'Balance Sheet':stmtType==='PL'?'P&L Account':'Cash Flow') + ' saved successfully to Google Sheets!');
+  } else {
+    alert('Saved in app. Note: Google Sheet sync pending — ' + (result.error || 'Script URL not configured'));
+  }
+  renderEntryStatus();
+  renderMIS();
+}
+
+async function saveBS() {
+  await saveFinancialStatement('BS','bsCo',
+    [bsLines.nca,bsLines.ca,bsLines.eq,bsLines.ncl,bsLines.cl],
+    ['Non-Current Assets','Current Assets','Equity','Non-Current Liabilities','Current Liabilities']
+  );
+}
+async function savePL() {
+  await saveFinancialStatement('PL','plCo',
+    [plLines.inc,plLines.exp],
+    ['Income','Expenses']
+  );
+}
+async function saveCF() {
+  await saveFinancialStatement('CF','cfCo',
+    [cfLines.oper,cfLines.inv,cfLines.fin],
+    ['Operating','Investing','Financing']
+  );
+}
 function calcPL(){recalcPL();}function calcCF(){recalcCF();}
 function renderEntryStatus(){
   let full=0,part=0,none=0;
@@ -1717,16 +2011,9 @@ function renderPromoter(){
 function showExport(title){
   document.getElementById('exportTitle').textContent=title+' — preview';
   document.getElementById('exportBody').innerHTML=`
-    <div style="font-size:12px;color:var(--text2);margin-bottom:10px;">Showing top rows. Full report downloads as Excel/PDF in deployment.</div>
-    <table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;">
-      <thead><tr style="background:var(--bg2)"><th style="padding:5px 8px;text-align:left;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);width:35%">Line item</th><th style="padding:5px 8px;text-align:right;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);width:22%">Q1 FY26</th><th style="padding:5px 8px;text-align:right;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);width:22%">Q4 FY25</th><th style="padding:5px 8px;text-align:right;font-size:11px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);width:21%">YoY %</th></tr></thead>
-      <tbody>
-        <tr><td style="padding:5px 8px;border-bottom:1px solid var(--border)">Total borrowings</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">56,000</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">57,200</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border);color:var(--green)">+7.7%</td></tr>
-        <tr><td style="padding:5px 8px;border-bottom:1px solid var(--border)">Long-term borrowings</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">43,500</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">44,800</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border);color:var(--green)">+8.2%</td></tr>
-        <tr><td style="padding:5px 8px;border-bottom:1px solid var(--border)">Short-term borrowings</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">12,500</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border)">12,400</td><td style="padding:5px 8px;text-align:right;border-bottom:1px solid var(--border);color:var(--red)">+5.9%</td></tr>
-        <tr><td style="padding:5px 8px">Finance costs (Q)</td><td style="padding:5px 8px;text-align:right">1,421</td><td style="padding:5px 8px;text-align:right">1,380</td><td style="padding:5px 8px;text-align:right;color:var(--red)">+13.7%</td></tr>
-      </tbody>
-    </table>`;
+    <div style="font-size:12px;color:var(--text3);padding:20px;text-align:center;">
+      No data available yet. Company users must submit financial statements before reports can be generated.
+    </div>`;
   document.getElementById('exportPreview').style.display='block';
 }
 function renderTrend(){
@@ -1734,15 +2021,16 @@ function renderTrend(){
   const data=trendData[metric];
   const labels2={revenue:'Revenue',pat:'PAT',borrowings:'Borrowings',assets:'Total assets'};
   document.getElementById('trendTitle').textContent=labels2[metric]+' trend — group total (₹ Lakhs)';
-  const maxV=Math.max(...data);
-  document.getElementById('trendChart').innerHTML=`
+  const maxV=Math.max(...data,1);
+  const hasT=data.some(v=>v>0);
+  document.getElementById('trendChart').innerHTML=hasT?`
     <div style="display:flex;align-items:flex-end;gap:14px;height:150px;padding-bottom:26px;border-bottom:1px solid var(--border);margin-bottom:10px;">
       ${data.map((v,i)=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
         <div style="font-size:11px;font-weight:600;">${fmtL(v)}</div>
         <div style="width:100%;background:${i===4?'var(--blue)':'var(--blue-mid)'};border-radius:3px 3px 0 0;height:${Math.round(v/maxV*100)}px;"></div>
         <div style="font-size:10px;color:var(--text2);text-align:center;">${trendLabels[i]}</div>
       </div>`).join('')}
-    </div>`;
+    </div>`:'<div style="color:var(--text3);font-size:12px;padding:30px;text-align:center;">No trend data yet — submit quarterly financial statements to see trends.</div>';
   const rows=[['Revenue (&#8377;L)',...trendData.revenue],['PAT (&#8377;L)',...trendData.pat],['Borrowings (&#8377;L)',...trendData.borrowings],['Assets (&#8377;L)',...trendData.assets]];
   document.getElementById('trendBody').innerHTML=rows.map(r=>`<tr><td style="font-weight:600">${r[0]}</td>${r.slice(1).map((v,i)=>{const prev=r[i];const chg=prev?((v-prev)/prev*100).toFixed(1):'';return `<td style="text-align:right">${fmtL(v)}${i>0&&prev?`<br><span style="font-size:10px;color:${chg>=0?'var(--green)':'var(--red)'}">${chg>=0?'+':''}${chg}%</span>`:''}</td>`;}).join('')}</tr>`).join('');
 }
